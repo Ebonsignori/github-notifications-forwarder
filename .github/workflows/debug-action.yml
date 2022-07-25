@@ -1,0 +1,23 @@
+name: Debug action
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 */3 * * *"
+
+jobs:
+  debug-action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Debug Run
+        uses: ./
+        with:
+          action-schedule: "0 */3 * * *"
+          github-token: ${{ secrets.EBONSIGNORI_TOKEN }}
+          slack-token: ${{ secrets.SLACK_BOT }}
+          destination: "D02ANBD0KU0"
+
+
+
+

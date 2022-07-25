@@ -24,8 +24,7 @@ jobs:
           npm run build 
           npm run package
           git add --all
-          git commit -a --reuse-message=HEAD
-          git push
+          git diff --quiet && git diff --staged --quiet || git commit -a --reuse-message=HEAD && git push
       # do the release
       - run: npx semantic-release --debug
         env:
