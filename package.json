@@ -48,7 +48,8 @@
   },
   "ava": {
     "nodeArguments": [
-      "--experimental-specifier-resolution=node"
+      "--experimental-specifier-resolution=node",
+      "--input-type=commonjs"
     ],
     "typescript": {
       "compile": "tsc",
