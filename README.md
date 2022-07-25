@@ -8,7 +8,6 @@ Forwarded notifications can be filtered by their [reason](#filtering-inputs), [p
 
 ## TOC
 
-* [TOC](#toc)
 * [Example Usage](#example-usage)
 * [Finding The Channel ID](#finding-the-channel-id)
 * [Inputs](#inputs)
