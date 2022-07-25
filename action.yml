@@ -1,0 +1,51 @@
+name: "GitHub Notifications Slack Forwarder"
+description: "This action is intended to be run from a scheduled GitHub action. It checks all notifications since the last scheduled run and forwards them to a Slack channel or direct message."
+inputs:
+  action-schedule:
+    description: 'The POSIX cron syntax that matches the on: schedule that this action is called in. e.g. "15 * * * *"'
+    required: true
+  github-token:
+    description: "PAT with access to relevant notifications"
+    required: true
+  slack-token:
+    description: "Slack bot token with access to destination"
+    required: true
+  destination:
+    description: "The id of a Slack channel to post notifications to or the id of a user to direct message notifications to."
+    required: true
+  filter-include-reasons:
+    description: 'A comma separated string of notification "reason" types to include. Defaults to all reasons'
+    required: false
+    default: "assign, author, ci_activity, comment, manual, mention, push, review_requested, security_alert, state_change, subscribed, team_mention, your_activity"
+  filter-exclude-reasons:
+    description: 'A comma separated string of notification "reason" types to exclude. Defaults to no reasons'
+    required: false
+    default: ""
+  filter-only-participating:
+    description: 'Set to "true" to only forward notifications in which the user is directly participating or mentioned in'
+    required: false
+    default: "false"
+  filter-only-unread:
+    description: 'Set to "true" to only forward notifications not already marked as "read"'
+    required: false
+    default: "false"
+  rollup-notifications:
+    description: 'Set to "false" to send Slack messages for each notification rather than a single rollup of all notifications into one message.'
+    required: false
+    default: "true"
+  mark-as-read:
+    description: 'Set to "true" to mark forwarded notifications as "read"'
+    required: false
+    default: "false"
+  paginate-all:
+    description: 'By default, action checks the last 100 notifications since the last action-schedule was run. Set to "true" to check all notifications'
+    required: false
+    default: "false"
+  timezone:
+    description: "Timezone your action runner is running on."
+    required: false
+    default: "UTC"
+
+runs:
+  using: node16
+  main: dist/index.js
