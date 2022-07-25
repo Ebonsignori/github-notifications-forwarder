@@ -1,7 +1,10 @@
-node_modules
+# Include /dist but not intermediary /build
+build/
+tsconfig.tsbuildinfo
 
+# Npm
+node_modules
 .npm
 
+# Testing
 coverage/
-
-tsconfig.tsbuildinfo

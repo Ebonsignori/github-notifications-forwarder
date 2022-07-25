@@ -5,6 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "build": "tsc",
+    "package": "ncc build build/index.js --source-map --license licenses.txt --out dist/",
     "lint": "prettier --check \"*.{ts,json,md,yml}\"",
     "lint:fix": "prettier --write \"*.{ts,json,md,yml}\"",
     "test": "c8 ava src"
@@ -37,6 +38,7 @@
     "@ava/typescript": "^3.0.1",
     "@octokit/types": "^6.40.0",
     "@types/sinon": "^10.0.13",
+    "@vercel/ncc": "^0.34.0",
     "ava": "^4.3.1",
     "c8": "^7.12.0",
     "prettier": "^2.7.1",
@@ -51,7 +53,7 @@
     "typescript": {
       "compile": "tsc",
       "rewritePaths": {
-        "src/": "dist/"
+        "src/": "build/"
       }
     }
   },
