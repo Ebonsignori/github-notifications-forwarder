@@ -85,12 +85,11 @@ function run(core, InstanceOctokit, InstanceSlack) {
             let notificationsFetch;
             if (inputs.paginateAll) {
                 try {
-                    notificationsFetch =
-                        yield octokit.paginate("GET /notifications", {
-                            all: !inputs.filterOnlyUnread,
-                            participating: inputs.filterOnlyParticipating,
-                            since: lastRunDate.toISOString(),
-                        });
+                    notificationsFetch = yield octokit.paginate("GET /notifications", {
+                        all: !inputs.filterOnlyUnread,
+                        participating: inputs.filterOnlyParticipating,
+                        since: lastRunDate.toISOString(),
+                    });
                 }
                 catch (error) {
                     core.error(error);
@@ -116,10 +115,20 @@ function run(core, InstanceOctokit, InstanceSlack) {
             if (!notificationsFetch.length) {
                 return core.info(`No new notifications since last run with given filters:\n<filter-only-unread>: ${inputs.filterOnlyUnread}\n<filter-only-participating>: ${inputs.filterOnlyParticipating}`);
             }
+            let notifications = notificationsFetch;
             // Filter notifications to include/exclude user defined "reason"s
-            let notifications = notificationsFetch.filter((notification) => inputs.filterIncludeReasons.includes(notification.reason.toLowerCase()));
+            if (inputs.filterIncludeReasons.length) {
+                notifications = notifications.filter((notification) => inputs.filterIncludeReasons.includes(notification.reason.toLowerCase()));
+            }
             if (inputs.filterExcludeReasons.length) {
                 notifications = notifications.filter((notification) => !inputs.filterExcludeReasons.includes(notification.reason.toLowerCase()));
+            }
+            // Filter notifications to include/exclude repositories
+            if (inputs.filterIncludeRepositories.length) {
+                notifications = notifications.filter((notification) => inputs.filterIncludeRepositories.includes(notification.repository.full_name.toLowerCase()));
+            }
+            if (inputs.filterExcludeReasons.length) {
+                notifications = notifications.filter((notification) => !inputs.filterExcludeRepositories.includes(notification.repository.full_name.toLowerCase()));
             }
             // Send Slack Message
             core.info("Forwarding notifications to Slack...");
@@ -149,7 +158,8 @@ var inputType;
 (function (inputType) {
     inputType["string"] = "STRING";
     inputType["boolean"] = "BOOLEAN";
-    inputType["CSV"] = "CSV";
+    inputType["reasonList"] = "REASON_LIST";
+    inputType["repositoryList"] = "REPOSITORY_LIST";
 })(inputType || (inputType = {}));
 var inputs;
 (function (inputs) {
@@ -159,6 +169,8 @@ var inputs;
     inputs["destination"] = "destination";
     inputs["filterIncludeReasons"] = "filter-include-reasons";
     inputs["filterExcludeReasons"] = "filter-exclude-reasons";
+    inputs["filterIncludeRepositories"] = "filter-include-repositories";
+    inputs["filterExcludeRepositories"] = "filter-exclude-repositories";
     inputs["filterOnlyParticipating"] = "filter-only-participating";
     inputs["filterOnlyUnread"] = "filter-only-unread";
     inputs["rollupNotifications"] = "rollup-notifications";
@@ -201,7 +213,8 @@ function getInputs(core) {
                 throw new Error(`Input <${name}> is a required boolean.`);
             }
         }
-        else if (type === inputType.CSV) {
+        else if (type === inputType.reasonList ||
+            type === inputType.repositoryList) {
             input = core.getInput(name, { required });
             if (input) {
                 input = input.split(",").map((opt) => opt.trim().toLowerCase());
@@ -209,17 +222,31 @@ function getInputs(core) {
                 if (required && !input) {
                     throw new Error(`Input <${name}> is a required comma-separated list.`);
                 }
-                // Validate that array only contains "reason" values
                 if (input === null || input === void 0 ? void 0 : input.length) {
-                    const allPass = input.every((reason) => {
-                        if (!reasons.includes(reason.toLowerCase())) {
-                            core.error(`"${reason}" is not a valid notification reason type. Please refer to "Filtering Inputs" in README.md.`);
-                            return false;
+                    // Validate that array only contains "reason" values if reason
+                    if (inputType.reasonList) {
+                        const allPass = input.every((reason) => {
+                            if (!reasons.includes(reason.toLowerCase())) {
+                                core.error(`"${reason}" is not a valid notification reason type. Please refer to "Filtering Inputs" in README.md.`);
+                                return false;
+                            }
+                            return true;
+                        });
+                        if (!allPass) {
+                            throw new Error(`Invalid reason in filter input. Valid reasons: [${reasons.join(", ")}]`);
                         }
-                        return true;
-                    });
-                    if (!allPass) {
-                        throw new Error(`Invalid reason in filter input. Valid reasons: [${reasons.join(", ")}]`);
+                    }
+                    else if (inputType.repositoryList) {
+                        const allPass = input.every((repository) => {
+                            if (!repository.match(/([A-Za-z0-9_.-]*\/[A-Za-z0-9_.-]*)/g)) {
+                                core.error(`"${repository}" is not a valid repository name. Must be in the form owner/repo.`);
+                                return false;
+                            }
+                            return true;
+                        });
+                        if (!allPass) {
+                            throw new Error(`Invalid repository in filter input. Must be in form "owner/repo" e.g. "Ebonsignori/github-notifications-slack-forwarder"`);
+                        }
                     }
                 }
             }
@@ -235,8 +262,10 @@ function getInputs(core) {
         githubToken: getInput(inputs.githubToken, inputType.string, true),
         slackToken: getInput(inputs.slackToken, inputType.string, true),
         destination: getInput(inputs.destination, inputType.string, true),
-        filterIncludeReasons: getInput(inputs.filterIncludeReasons, inputType.CSV, false),
-        filterExcludeReasons: getInput(inputs.filterExcludeReasons, inputType.CSV, false),
+        filterIncludeReasons: getInput(inputs.filterIncludeReasons, inputType.reasonList, false),
+        filterExcludeReasons: getInput(inputs.filterExcludeReasons, inputType.reasonList, false),
+        filterIncludeRepositories: getInput(inputs.filterIncludeRepositories, inputType.repositoryList, false),
+        filterExcludeRepositories: getInput(inputs.filterExcludeRepositories, inputType.repositoryList, false),
         filterOnlyParticipating: getInput(inputs.filterOnlyParticipating, inputType.boolean, false),
         filterOnlyUnread: getInput(inputs.filterOnlyUnread, inputType.boolean, false),
         rollupNotifications: getInput(inputs.rollupNotifications, inputType.boolean, false),
