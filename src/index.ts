@@ -122,6 +122,12 @@ async function run(
       );
     }
 
+    if (!notifications.length) {
+      return core.info(
+        `No new notifications since last run with given filters.`
+      );
+    }
+
     // Send Slack Message
     core.info("Forwarding notifications to Slack...");
     await sendToSlack(core, slack, inputs, notifications);
