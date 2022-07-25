@@ -4,7 +4,7 @@ This action is intended to be run from a scheduled GitHub action. It checks all 
 
 Requires access to a Slack Bot with proper `write` permissions to the Slack channel or DM, and a user-generated legacy [personal access token](https://github.com/settings/tokens) with the `notifications` scope enabled.
 
-Forwarded notifications can be filtered by their [reason](#reason-filtering), [repository](#repository-filtering), [participation](#-filter-only-participating-), or [read status](#-filter-only-read-).
+Forwarded notifications can be filtered by their [reason](#reason-filtering), [repository](#repository-filtering), [participation](#filter-only-participating), or [read status](#filter-only-read).
 
 ## TOC
 
@@ -12,23 +12,23 @@ Forwarded notifications can be filtered by their [reason](#reason-filtering), [r
 * [Finding The Channel ID](#finding-the-channel-id)
 * [Inputs](#inputs)
   + [Required Inputs](#required-inputs)
-    - [`action-schedule`](#-action-schedule-)
-    - [`github-token`](#-github-token-)
-    - [`slack-token`](#-slack-token-)
-    - [`destination`](#-destination-)
+    - [`action-schedule`](#action-schedule)
+    - [`github-token`](#github-token)
+    - [`slack-token`](#slack-token)
+    - [`destination`](#destination)
   + [Reason Filtering](#reason-filtering)
-    - [`filter-include-reasons`](#-filter-include-reasons-)
-    - [`filter-exclude-reasons`](#-filter-exclude-reasons-)
+    - [`filter-include-reasons`](#filter-include-reasons)
+    - [`filter-exclude-reasons`](#filter-exclude-reasons)
   + [Repository Filtering](#repository-filtering)
-    - [`filter-include-repositories`](#-filter-include-repositories-)
-    - [`filter-exclude-repositories`](#-filter-exclude-repositories-)
+    - [`filter-include-repositories`](#filter-include-repositories)
+    - [`filter-exclude-repositories`](#filter-exclude-repositories)
   + [Other Filtering](#other-filtering)
-    - [`filter-only-participating`](#-filter-only-participating-)
-    - [`filter-only-read`](#-filter-only-read-)
+    - [`filter-only-participating`](#filter-only-participating)
+    - [`filter-only-read`](#filter-only-read)
   + [Optional Configuration](#optional-configuration)
-    - [`rollup-notifications`](#-rollup-notifications-)
-    - [`paginate-all`](#-paginate-all-)
-    - [`timezone`](#-timezone-)
+    - [`rollup-notifications`](#rollup-notifications)
+    - [`paginate-all`](#paginate-all)
+    - [`timezone`](#timezone)
 
 ## Example Usage
 
