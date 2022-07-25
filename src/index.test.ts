@@ -126,7 +126,7 @@ test("errors when invalid filter reason is set", async (t) => {
 test("exits when no new notifications", async (t) => {
   setMockEnv({});
   const core = mockCore();
-  const octokit = mockOctokit();
+  const octokit = mockOctokit([]);
   const slack = mockSlack();
 
   await run(core as any, octokit as any, slack as any);
