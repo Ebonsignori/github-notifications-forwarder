@@ -1,0 +1,27 @@
+name: 🚀 Release
+"on":
+  push:
+    branches:
+      - main
+      - beta
+      - "*.x"
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "lts/*"
+          cache: npm
+      # install semantic-release plugins
+      - run: npm install --no-save semantic-release-plugin-github-breaking-version-tag
+      # configure git to push commit back to release branch
+      - run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+      # do the release
+      - run: npx semantic-release --debug
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
