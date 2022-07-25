@@ -22,11 +22,11 @@ inputs:
     required: false
     default: ""
   filter-include-repositories:
-    description: 'A comma separated string of repositories to limit to in the form of: owner/repo. Defaults to all repositories'
+    description: "A comma separated string of repositories to limit to in the form of: owner/repo. Defaults to all repositories"
     required: false
     default: ""
   filter-exclude-repositories:
-    description: 'A comma separated repos to exclude. Defaults to no excludes'
+    description: "A comma separated repos to exclude. Defaults to no excludes"
     required: false
     default: ""
   filter-only-participating:

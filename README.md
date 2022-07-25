@@ -8,24 +8,24 @@ Forwarded notifications can be filtered by their [reason](#reason-filtering), [r
 
 ## TOC
 
-* [Example Usage](#example-usage)
-* [Finding The Channel ID](#finding-the-channel-id)
-* [Inputs](#inputs)
-  + [Required Inputs](#required-inputs)
+- [Example Usage](#example-usage)
+- [Finding The Channel ID](#finding-the-channel-id)
+- [Inputs](#inputs)
+  - [Required Inputs](#required-inputs)
     - [`action-schedule`](#action-schedule)
     - [`github-token`](#github-token)
     - [`slack-token`](#slack-token)
     - [`destination`](#destination)
-  + [Reason Filtering](#reason-filtering)
+  - [Reason Filtering](#reason-filtering)
     - [`filter-include-reasons`](#filter-include-reasons)
     - [`filter-exclude-reasons`](#filter-exclude-reasons)
-  + [Repository Filtering](#repository-filtering)
+  - [Repository Filtering](#repository-filtering)
     - [`filter-include-repositories`](#filter-include-repositories)
     - [`filter-exclude-repositories`](#filter-exclude-repositories)
-  + [Other Filtering](#other-filtering)
+  - [Other Filtering](#other-filtering)
     - [`filter-only-participating`](#filter-only-participating)
     - [`filter-only-read`](#filter-only-read)
-  + [Optional Configuration](#optional-configuration)
+  - [Optional Configuration](#optional-configuration)
     - [`rollup-notifications`](#rollup-notifications)
     - [`paginate-all`](#paginate-all)
     - [`timezone`](#timezone)
@@ -56,12 +56,11 @@ jobs:
 
 In order for a Slack bot to DM you, it needs privledges to.
 
-In order for your bot to post to a channel, you should invite it with `/invite @botname` 
+In order for your bot to post to a channel, you should invite it with `/invite @botname`
 
 To find the channel's [destination](#destination), you can press on the channel's name or your DMs to find the "Channel ID"
 
 ![Finding the channel ID](./docs/finding-channel-id.png)
-
 
 ## Inputs
 
@@ -114,7 +113,6 @@ Defaults to all no `reason`s.
 ### Repository Filtering
 
 Filter which repositories are included/excluded by writing them in a comma-separated string in the form "owner/repo", e.g. `Ebonsignori/github-notifications-slack-forwarder`.
-
 
 #### `filter-include-repositories`
 
