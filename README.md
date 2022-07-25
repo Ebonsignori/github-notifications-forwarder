@@ -1,9 +1,11 @@
 # GitHub Notifications Slack Forwarder
 
-TODO: Input section
-TODO: Release section and release logic
-TODO: Contribution section
-TODO: License section
+- TODO: Add repository filter
+- TODO: Input section
+- TODO: Release section and release logic
+- TODO: Contribution section
+- TODO: License section
+- TODO: Finish tests
 
 This action is intended to be run from a scheduled GitHub action. It checks all notifications since the last scheduled run and forwards them to a Slack channel or direct message.
 
@@ -13,7 +15,7 @@ Forwarded notifications can be filtered by their [reason](#filtering-inputs), [p
 
 ## Example Usage
 
-Scheduled action, e.g. `.github/workflows/my-notifications.yml` that runs every 3 hours to forward the past 3 hours of notifications to channel "#1234"
+Scheduled action, e.g. `.github/workflows/my-notifications.yml` that runs every 3 hours to forward the past 3 hours of notifications to channel with id "abc1234"
 
 ```yml
 on:
@@ -30,8 +32,19 @@ jobs:
           action-schedule: "0 */3 * * *"
           github-token: ${{ secrets.GITHUB_TOKEN }}
           slack-token: ${{ secrets.SLACK_TOKEN }}
-          destination: "#1234"
+          destination: "abc1234"
 ```
+
+## Slack Destination
+
+In order for a Slack bot to DM you, it needs privledges to.
+
+In order for your bot to post to a channel, you should invite it with `/invite @botname` 
+
+To find the channel's `destination`, you can press on the channel's name or your DMs to find the "Channel ID"
+
+![Finding the channel ID](./docs/finding-channel-id.png)
+
 
 ## Inputs
 
