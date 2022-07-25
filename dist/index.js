@@ -81,7 +81,7 @@ function run(core, InstanceOctokit, InstanceSlack) {
                 throw new Error(`Invalid <action-schedule>, "${inputs.actionSchedule}". Please use the same cron string you use to schedule your workflow_dispatch.`);
             }
             // Fetch notifications since last date
-            core.info(`Fetching notifications between ${lastRunDate.toISOString()} and ${currentDate} (now)`);
+            core.info(`Fetching notifications between ${lastRunDate.toISOString()} and ${currentDate} (now)...`);
             let notificationsFetch;
             if (inputs.paginateAll) {
                 try {
@@ -122,6 +122,7 @@ function run(core, InstanceOctokit, InstanceSlack) {
                 notifications = notifications.filter((notification) => !inputs.filterExcludeReasons.includes(notification.reason.toLowerCase()));
             }
             // Send Slack Message
+            core.info("Forwarding notifications to Slack...");
             yield (0, send_to_slack_1.default)(core, slack, inputs, notifications);
             return core.info("Notification message(s) sent!");
         }
@@ -305,7 +306,7 @@ function sendToSlack(core, slack, inputs, notifications) {
             }
             catch (error) {
                 core.error(error);
-                return core.setFailed(`Unable to send notification to Slack. Is your <slack-token> properly scoped to your <destination>?`);
+                throw new Error(`Unable to send notification to Slack. Is your <slack-token> properly scoped to your <destination>?`);
             }
         }
         // If not rollup, send each notification individually
@@ -330,7 +331,7 @@ function sendToSlack(core, slack, inputs, notifications) {
             }
             catch (error) {
                 core.error(error);
-                return core.setFailed(`Unable to send notification to Slack. Is your <slack-token> properly scoped to your <destination>?`);
+                throw new Error(`Unable to send notification to Slack. Is your <slack-token> properly scoped to your <destination>?`);
             }
         }
     });
