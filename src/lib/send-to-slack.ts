@@ -11,6 +11,7 @@ async function sendToSlack(
   inputs: { rollupNotifications: boolean; destination: string },
   notifications: Endpoints["GET /notifications"]["response"]["data"]
 ) {
+  console.log(inputs.destination)
   // On rollup, send all notifications in one message body
   if (inputs.rollupNotifications) {
     let blocks;

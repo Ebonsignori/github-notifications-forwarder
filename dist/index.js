@@ -270,6 +270,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
  */
 function sendToSlack(core, slack, inputs, notifications) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log(inputs.destination);
         // On rollup, send all notifications in one message body
         if (inputs.rollupNotifications) {
             let blocks;
