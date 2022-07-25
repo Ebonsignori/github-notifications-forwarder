@@ -265,12 +265,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+function renderNotificationMessage(notification) {
+    return `<${notification.repository.html_url}|${notification.repository.full_name}>\n<${notification.url}|${notification.subject.title}>`;
+}
 /**
  * Renders notifications for Slack and then sends them
  */
 function sendToSlack(core, slack, inputs, notifications) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log(inputs.destination);
         // On rollup, send all notifications in one message body
         if (inputs.rollupNotifications) {
             let blocks;
@@ -279,7 +281,7 @@ function sendToSlack(core, slack, inputs, notifications) {
                 if (bodyText) {
                     bodyText += "\n\n";
                 }
-                bodyText += `<${notification.url}|${notification.subject.title}>`;
+                bodyText += renderNotificationMessage(notification);
             }
             blocks = [
                 {
@@ -312,7 +314,7 @@ function sendToSlack(core, slack, inputs, notifications) {
         }
         // If not rollup, send each notification individually
         for (const notification of notifications) {
-            const text = `<${notification.url}|${notification.subject.title}>`;
+            const text = renderNotificationMessage(notification);
             // Not promisified for rate limitting, wait 2 seconds between each message
             try {
                 yield slack.chat.postMessage({
