@@ -275,15 +275,7 @@ function sendToSlack(core, slack, inputs, notifications) {
     return __awaiter(this, void 0, void 0, function* () {
         // On rollup, send all notifications in one message body
         if (inputs.rollupNotifications) {
-            let blocks;
-            let bodyText = "";
-            for (const notification of notifications) {
-                if (bodyText) {
-                    bodyText += "\n\n";
-                }
-                bodyText += renderNotificationMessage(notification);
-            }
-            blocks = [
+            const blocks = [
                 {
                     type: "header",
                     text: {
@@ -291,15 +283,22 @@ function sendToSlack(core, slack, inputs, notifications) {
                         text: "GitHub Notifications",
                     },
                 },
-                {
+            ];
+            let textBody = "";
+            for (const notification of notifications) {
+                if (textBody) {
+                    textBody += "\n\n";
+                }
+                textBody += renderNotificationMessage(notification);
+                blocks.push({
                     type: "section",
                     text: {
                         type: "mrkdwn",
-                        text: bodyText,
+                        text: renderNotificationMessage(notification),
                     },
-                },
-            ];
-            const text = `GitHub Notifications\n\n${bodyText}`;
+                });
+            }
+            const text = `GitHub Notifications\n\n${textBody}`;
             try {
                 return slack.chat.postMessage({
                     blocks,
