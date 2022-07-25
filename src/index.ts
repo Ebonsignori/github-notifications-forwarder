@@ -45,7 +45,7 @@ async function run(
     }
 
     // Fetch notifications since last date
-    core.info(`Fetching notifications between ${lastRunDate.toISOString()} and ${currentDate} (now)`);
+    core.info(`Fetching notifications between ${lastRunDate.toISOString()} and ${currentDate} (now)...`);
     let notificationsFetch;
     if (inputs.paginateAll) {
       try {
@@ -99,6 +99,7 @@ async function run(
     }
 
     // Send Slack Message
+    core.info("Forwarding notifications to Slack...");
     await sendToSlack(core, slack, inputs, notifications);
 
     return core.info("Notification message(s) sent!");

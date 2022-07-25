@@ -14,7 +14,7 @@ jobs:
           action-schedule: "0 */3 * * *"
           github-token: ${{ secrets.EBONSIGNORI_TOKEN }}
           slack-token: ${{ secrets.SLACK_BOT }}
-          destination: "D02ANBD0KU0"
+          destination: "C03RMNNF1B2"
 
 
 
