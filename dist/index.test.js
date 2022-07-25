@@ -112,3 +112,23 @@ test("exits when no new notifications", (t) => __awaiter(void 0, void 0, void 0,
     t.true(core.setFailed.notCalled);
     t.true(core.info.calledWithMatch("No new notifications since last run"));
 }));
+// TODO:
+// test("sends slack message", async (t) => {
+// setMockEnv({});
+// const core = mockCore();
+// const octokit = mockOctokit();
+// const slack = mockSlack();
+// await run(core as any, octokit as any, slack as any);
+// t.true(core.setFailed.notCalled);
+// });
+// TODO:
+// test("filters notifications", async (t) => {
+// setMockEnv({});
+// const core = mockCore();
+// const octokit = mockOctokit();
+// const slack = mockSlack();
+// await run(core as any, octokit as any, slack as any);
+// t.true(core.setFailed.notCalled);
+// });
+// TODO: Test rollup-notifications
+// TODO: test timezone
