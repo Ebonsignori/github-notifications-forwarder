@@ -3,7 +3,8 @@ import * as CoreLibrary from "@actions/core";
 enum inputType {
   string = "STRING",
   boolean = "BOOLEAN",
-  CSV = "CSV",
+  reasonList = "REASON_LIST",
+  repositoryList = "REPOSITORY_LIST",
 }
 
 export enum inputs {
@@ -13,6 +14,8 @@ export enum inputs {
   destination = "destination",
   filterIncludeReasons = "filter-include-reasons",
   filterExcludeReasons = "filter-exclude-reasons",
+  filterIncludeRepositories = "filter-include-repositories",
+  filterExcludeRepositories = "filter-exclude-repositories",
   filterOnlyParticipating = "filter-only-participating",
   filterOnlyUnread = "filter-only-unread",
   rollupNotifications = "rollup-notifications",
@@ -49,7 +52,7 @@ function getInputs(core: typeof CoreLibrary) {
   ): boolean;
   function getInput(
     name: string,
-    type: inputType.CSV,
+    type: inputType.reasonList | inputType.repositoryList,
     required: boolean
   ): Array<string>;
   function getInput(
@@ -75,7 +78,10 @@ function getInputs(core: typeof CoreLibrary) {
       if (required && !input) {
         throw new Error(`Input <${name}> is a required boolean.`);
       }
-    } else if (type === inputType.CSV) {
+    } else if (
+      type === inputType.reasonList ||
+      type === inputType.repositoryList
+    ) {
       input = core.getInput(name, { required });
       if (input) {
         input = input.split(",").map((opt: string) => opt.trim().toLowerCase());
@@ -85,23 +91,41 @@ function getInputs(core: typeof CoreLibrary) {
             `Input <${name}> is a required comma-separated list.`
           );
         }
-        // Validate that array only contains "reason" values
         if (input?.length) {
-          const allPass = input.every((reason: string) => {
-            if (!reasons.includes(reason.toLowerCase())) {
-              core.error(
-                `"${reason}" is not a valid notification reason type. Please refer to "Filtering Inputs" in README.md.`
+          // Validate that array only contains "reason" values if reason
+          if (inputType.reasonList) {
+            const allPass = input.every((reason: string) => {
+              if (!reasons.includes(reason.toLowerCase())) {
+                core.error(
+                  `"${reason}" is not a valid notification reason type. Please refer to "Filtering Inputs" in README.md.`
+                );
+                return false;
+              }
+              return true;
+            });
+            if (!allPass) {
+              throw new Error(
+                `Invalid reason in filter input. Valid reasons: [${reasons.join(
+                  ", "
+                )}]`
               );
-              return false;
             }
-            return true;
-          });
-          if (!allPass) {
-            throw new Error(
-              `Invalid reason in filter input. Valid reasons: [${reasons.join(
-                ", "
-              )}]`
-            );
+          } else if (inputType.repositoryList) {
+            const allPass = input.every((repository: string) => {
+              if (!repository.match(/([A-Za-z0-9_.-]*\/[A-Za-z0-9_.-]*)/g)) {
+                core.error(
+                  `"${repository}" is not a valid repository name. Must be in the form owner/repo.`
+                );
+                return false
+
+              }
+              return true;
+            });
+            if (!allPass) {
+              throw new Error(
+                `Invalid repository in filter input. Must be in form "owner/repo" e.g. "Ebonsignori/github-notifications-slack-forwarder"`
+              );
+            }
           }
         }
       }
@@ -120,12 +144,22 @@ function getInputs(core: typeof CoreLibrary) {
     destination: getInput(inputs.destination, inputType.string, true),
     filterIncludeReasons: getInput(
       inputs.filterIncludeReasons,
-      inputType.CSV,
-      false
+      inputType.reasonList,
+      false,
     ),
     filterExcludeReasons: getInput(
       inputs.filterExcludeReasons,
-      inputType.CSV,
+      inputType.reasonList,
+      false,
+    ),
+    filterIncludeRepositories: getInput(
+      inputs.filterIncludeRepositories,
+      inputType.repositoryList,
+      false
+    ),
+    filterExcludeRepositories: getInput(
+      inputs.filterExcludeRepositories,
+      inputType.repositoryList,
       false
     ),
     filterOnlyParticipating: getInput(

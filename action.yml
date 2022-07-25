@@ -21,7 +21,7 @@ inputs:
     description: 'A comma separated string of notification "reason" types to exclude. Defaults to no reasons'
     required: false
     default: ""
-  filter-limit-to-repositories:
+  filter-include-repositories:
     description: 'A comma separated string of repositories to limit to in the form of: owner/repo. Defaults to all repositories'
     required: false
     default: ""
@@ -36,7 +36,7 @@ inputs:
   filter-only-unread:
     description: 'Set to "true" to only forward notifications not already marked as "read"'
     required: false
-    default: "false"
+    default: "true"
   rollup-notifications:
     description: 'Set to "false" to send Slack messages for each notification rather than a single rollup of all notifications into one message.'
     required: false
@@ -50,7 +50,7 @@ inputs:
     required: false
     default: "false"
   timezone:
-    description: "Timezone your action runner is running on."
+    description: "Timezone you're in. (Action runner timezone must be UTC)"
     required: false
     default: "UTC"
 

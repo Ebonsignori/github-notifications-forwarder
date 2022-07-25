@@ -147,7 +147,7 @@ test("exits when no new notifications", async (t) => {
   // t.true(core.setFailed.notCalled);
 // });
 
-// TODO:
+// TODO: verify reason filter
 // test("filters notifications", async (t) => {
   // setMockEnv({});
   // const core = mockCore();
@@ -158,6 +158,8 @@ test("exits when no new notifications", async (t) => {
 
   // t.true(core.setFailed.notCalled);
 // });
+
+// TODO: verify repo filter
 
 // TODO: Test rollup-notifications
 // TODO: test timezone
