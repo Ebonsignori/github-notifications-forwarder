@@ -38887,7 +38887,7 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 const ExtendedOctokit = octokit__WEBPACK_IMPORTED_MODULE_5__/* .Octokit.plugin */ .vd.plugin(_octokit_plugin_throttling__WEBPACK_IMPORTED_MODULE_6__.throttling);
 // Call `run()` directly if this file is the entry point
-if ("file:///Users/evanbonsignori/Projects/github-notifications-slack-forwarder/build/index.js".endsWith(process.argv[1])) {
+if ("file:///home/runner/work/github-notifications-slack-forwarder/github-notifications-slack-forwarder/build/index.js".endsWith(process.argv[1])) {
     run(/*#__PURE__*/ (_actions_core__WEBPACK_IMPORTED_MODULE_0___namespace_cache || (_actions_core__WEBPACK_IMPORTED_MODULE_0___namespace_cache = __nccwpck_require__.t(_actions_core__WEBPACK_IMPORTED_MODULE_0__, 2))), ExtendedOctokit, _slack_web_api__WEBPACK_IMPORTED_MODULE_2__.WebClient);
 }
 /**
