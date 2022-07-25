@@ -10,7 +10,7 @@ import sendToSlack from "./lib/send-to-slack";
 const ExtendedOctokit = Octokit.plugin(throttling);
 
 // Call `run()` directly if this file is the entry point
-if (import.meta.url.endsWith(process.argv[1])) {
+if (require.main === module) {
   run(CoreLibrary, ExtendedOctokit, WebClient);
 }
 

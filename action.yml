@@ -48,7 +48,7 @@ inputs:
 
 runs:
   using: node16
-  main: dist/index.cjs
+  main: dist/index.js
 
 branding:
   icon: "bell"
