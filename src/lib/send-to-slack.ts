@@ -50,7 +50,7 @@ async function sendToSlack(
       });
     } catch (error: any) {
       core.error(error);
-      return core.setFailed(
+      throw new Error(
         `Unable to send notification to Slack. Is your <slack-token> properly scoped to your <destination>?`
       );
     }
@@ -77,7 +77,7 @@ async function sendToSlack(
       await delay(2000);
     } catch (error: any) {
       core.error(error);
-      return core.setFailed(
+      throw new Error(
         `Unable to send notification to Slack. Is your <slack-token> properly scoped to your <destination>?`
       );
     }
