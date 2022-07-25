@@ -2,6 +2,10 @@ import * as CoreLibrary from "@actions/core";
 import { Endpoints } from "@octokit/types";
 import { WebClient } from "@slack/web-api";
 
+function renderNotificationMessage(notification: Endpoints["GET /notifications"]["response"]["data"][0]) {
+  return `<${notification.repository.html_url}|${notification.repository.full_name}>\n<${notification.url}|${notification.subject.title}>`;
+}
+
 /**
  * Renders notifications for Slack and then sends them
  */
@@ -20,7 +24,7 @@ async function sendToSlack(
       if (bodyText) {
         bodyText += "\n\n";
       }
-      bodyText += `<${notification.url}|${notification.subject.title}>`;
+      bodyText += renderNotificationMessage(notification);
     }
 
     blocks = [
@@ -58,7 +62,7 @@ async function sendToSlack(
 
   // If not rollup, send each notification individually
   for (const notification of notifications) {
-    const text = `<${notification.url}|${notification.subject.title}>`;
+    const text = renderNotificationMessage(notification);
     // Not promisified for rate limitting, wait 2 seconds between each message
     try {
       await slack.chat.postMessage({

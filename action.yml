@@ -21,6 +21,14 @@ inputs:
     description: 'A comma separated string of notification "reason" types to exclude. Defaults to no reasons'
     required: false
     default: ""
+  filter-limit-to-repositories:
+    description: 'A comma separated string of repositories to limit to in the form of: owner/repo. Defaults to all repositories'
+    required: false
+    default: ""
+  filter-exclude-repositories:
+    description: 'A comma separated repos to exclude. Defaults to no excludes'
+    required: false
+    default: ""
   filter-only-participating:
     description: 'Set to "true" to only forward notifications in which the user is directly participating or mentioned in'
     required: false
