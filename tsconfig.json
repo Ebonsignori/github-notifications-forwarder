@@ -3,7 +3,7 @@
     "target": "es6",
     "module": "es2022",
     "moduleResolution": "Node",
-    "outDir": "./dist",
+    "outDir": "./build",
     "rootDir": "./src",
     "strict": true,
     "noImplicitAny": false,
