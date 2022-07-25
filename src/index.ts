@@ -27,12 +27,13 @@ async function run(
     const inputs = getInputs(core);
     const octokit = new InstanceOctokit({ auth: inputs.githubToken });
     const slack = new InstanceSlack(inputs.slackToken);
+    const currentDate = new Date().toISOString();
 
     // Get the last date that the action should have run
     let lastRunDate
     try {
       const cronInterval = CronParser.parseExpression(inputs.actionSchedule, {
-        currentDate: new Date().toISOString(),
+        currentDate,
         tz: inputs.timezone,
       });
       // Navigate pointer to 2 past previous intervals to account for current interval
@@ -44,7 +45,7 @@ async function run(
     }
 
     // Fetch notifications since last date
-    core.info(`Fetching notifications since ${lastRunDate.toISOString()}`);
+    core.info(`Fetching notifications between ${lastRunDate.toISOString()} and ${currentDate} (now)`);
     let notificationsFetch;
     if (inputs.paginateAll) {
       try {
@@ -54,7 +55,6 @@ async function run(
             participating: inputs.filterOnlyParticipating,
             since: lastRunDate.toISOString(),
           });
-        notificationsFetch = notificationsFetch.data;
       } catch (error: any) {
         core.error(error);
         throw new Error(
@@ -70,6 +70,7 @@ async function run(
             since: lastRunDate.toISOString(),
             per_page: 100,
           });
+        notificationsFetch = notificationsFetch.data;
       } catch (error: any) {
         core.error(error);
         throw new Error(
