@@ -130,6 +130,9 @@ function run(core, InstanceOctokit, InstanceSlack) {
             if (inputs.filterExcludeReasons.length) {
                 notifications = notifications.filter((notification) => !inputs.filterExcludeRepositories.includes(notification.repository.full_name.toLowerCase()));
             }
+            if (!notifications.length) {
+                return core.info(`No new notifications since last run with given filters.`);
+            }
             // Send Slack Message
             core.info("Forwarding notifications to Slack...");
             yield (0, send_to_slack_1.default)(core, slack, inputs, notifications);
