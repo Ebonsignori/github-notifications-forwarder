@@ -64,11 +64,12 @@ function run(core, InstanceOctokit, InstanceSlack) {
             const inputs = (0, get_inputs_1.default)(core);
             const octokit = new InstanceOctokit({ auth: inputs.githubToken });
             const slack = new InstanceSlack(inputs.slackToken);
+            const currentDate = new Date().toISOString();
             // Get the last date that the action should have run
             let lastRunDate;
             try {
                 const cronInterval = cron_parser_1.default.parseExpression(inputs.actionSchedule, {
-                    currentDate: new Date().toISOString(),
+                    currentDate,
                     tz: inputs.timezone,
                 });
                 // Navigate pointer to 2 past previous intervals to account for current interval
@@ -80,7 +81,7 @@ function run(core, InstanceOctokit, InstanceSlack) {
                 throw new Error(`Invalid <action-schedule>, "${inputs.actionSchedule}". Please use the same cron string you use to schedule your workflow_dispatch.`);
             }
             // Fetch notifications since last date
-            core.info(`Fetching notifications since ${lastRunDate.toISOString()}`);
+            core.info(`Fetching notifications between ${lastRunDate.toISOString()} and ${currentDate} (now)`);
             let notificationsFetch;
             if (inputs.paginateAll) {
                 try {
@@ -90,7 +91,6 @@ function run(core, InstanceOctokit, InstanceSlack) {
                             participating: inputs.filterOnlyParticipating,
                             since: lastRunDate.toISOString(),
                         });
-                    notificationsFetch = notificationsFetch.data;
                 }
                 catch (error) {
                     core.error(error);
@@ -106,6 +106,7 @@ function run(core, InstanceOctokit, InstanceSlack) {
                             since: lastRunDate.toISOString(),
                             per_page: 100,
                         });
+                    notificationsFetch = notificationsFetch.data;
                 }
                 catch (error) {
                     core.error(error);
