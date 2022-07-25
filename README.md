@@ -4,7 +4,7 @@ This action is intended to be run from a scheduled GitHub action. It checks all 
 
 Requires access to a Slack Bot with proper `write` permissions to the Slack channel or DM, and a user-generated legacy [personal access token](https://github.com/settings/tokens) with the `notifications` scope enabled.
 
-Forwarded notifications can be filtered by their [reason](#reason-filtering), [repository](#repository-filtering), [participation](#filter-participating), or [read status](#filter-include-read).
+Forwarded notifications can be filtered by their [reason](#reason-filtering), [repository](#repository-filtering), [participation](#-filter-only-participating-), or [read status](#-filter-only-read-).
 
 ## TOC
 
