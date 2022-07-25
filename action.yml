@@ -1,5 +1,5 @@
 name: "GitHub Notifications Slack Forwarder"
-description: "This action is intended to be run from a scheduled GitHub action. It checks all notifications since the last scheduled run and forwards them to a Slack channel or direct message."
+description: "Forwards filtered GitHub notifications to a Slack direct message or channel."
 inputs:
   action-schedule:
     description: 'The POSIX cron syntax that matches the on: schedule that this action is called in. e.g. "15 * * * *"'
