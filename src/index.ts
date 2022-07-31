@@ -11,22 +11,33 @@ const ExtendedOctokit = Octokit.plugin(throttling);
 
 // Call `run()` directly if this file is the entry point
 if (require.main === module) {
-  run(CoreLibrary, ExtendedOctokit, WebClient);
+  const getCore = (): typeof CoreLibrary => {
+    return CoreLibrary;
+  };
+  const getOctokit = (inputs): Octokit => {
+    return new ExtendedOctokit({ auth: inputs.githubToken });
+  };
+  const getSlack = (inputs): WebClient => {
+    return new WebClient(inputs.slackToken);
+  }
+  run(getCore, getOctokit, getSlack);
 }
 
 /**
  * Entry logic for notifications forwarder
  */
 async function run(
-  core: typeof CoreLibrary,
-  InstanceOctokit: typeof Octokit,
-  InstanceSlack: typeof WebClient
+  getCore: () => typeof CoreLibrary,
+  getOctokit: (inputs) => Octokit,
+  getSlack: (inputs) => WebClient
 ): Promise<void> {
+  const core = getCore();
+
   try {
     // Initialize
     const inputs = getInputs(core);
-    const octokit = new InstanceOctokit({ auth: inputs.githubToken });
-    const slack = new InstanceSlack(inputs.slackToken);
+    const octokit = getOctokit(inputs);
+    const slack = getSlack(inputs);
     const currentDate = new Date().toISOString();
 
     // Get the last date that the action should have run
@@ -48,7 +59,7 @@ async function run(
 
     // Fetch notifications since last date
     core.info(
-      `Fetching notifications between ${lastRunDate.toISOString()} and ${currentDate} (now)...`
+      `Fetching notifications between ${lastRunDate.toISOString()} and now, ${currentDate} UTC...`
     );
     let notificationsFetch;
     if (inputs.paginateAll) {
@@ -113,7 +124,7 @@ async function run(
         )
       );
     }
-    if (inputs.filterExcludeReasons.length) {
+    if (inputs.filterExcludeRepositories.length) {
       notifications = notifications.filter(
         (notification) =>
           !inputs.filterExcludeRepositories.includes(

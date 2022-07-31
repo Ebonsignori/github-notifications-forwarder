@@ -3,7 +3,8 @@ import { Endpoints } from "@octokit/types";
 import { WebClient } from "@slack/web-api";
 
 function renderNotificationMessage(notification: Endpoints["GET /notifications"]["response"]["data"][0]) {
-  return `<${notification.repository.html_url}|${notification.repository.full_name}>\n<${notification.url}|${notification.subject.title}>`;
+  // return `<${notification.repository.html_url}|${notification.repository.full_name}>\n<${notification.url}|${notification.subject.title}>`;
+  return `*${notification.repository.full_name}*\n<${notification.url}|${notification.subject.title}>`;
 }
 
 /**

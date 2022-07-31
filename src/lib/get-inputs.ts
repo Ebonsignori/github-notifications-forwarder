@@ -1,13 +1,13 @@
 import * as CoreLibrary from "@actions/core";
 
-enum inputType {
+enum INPUT_TYPE {
   string = "STRING",
   boolean = "BOOLEAN",
   reasonList = "REASON_LIST",
   repositoryList = "REPOSITORY_LIST",
 }
 
-export enum inputs {
+export enum INPUTS {
   actionSchedule = "action-schedule",
   githubToken = "github-token",
   slackToken = "slack-token",
@@ -24,21 +24,21 @@ export enum inputs {
   timezone = "timezone",
 }
 
-const reasons = [
-  "assign",
-  "author",
-  "ci_activity",
-  "comment",
-  "manual",
-  "mention",
-  "push",
-  "review_requested",
-  "security_alert",
-  "state_change",
-  "subscribed",
-  "team_mention",
-  "your_activity",
-];
+export enum REASONS {
+  ASSIGN = "assign",
+  AUTHOR = "author",
+  CI_ACTIVITY = "ci_activity",
+  COMMENT = "comment",
+  MANUAL = "manual",
+  MENTION = "mention",
+  PUSH = "push",
+  REVIEW_REQUESTED = "review_requested",
+  SECURITY_ALERT = "security_alert",
+  STATE_CHANGE = "state_change",
+  SUBSCRIBED = "subscribed",
+  TEAM_MENTION = "team_mention",
+  YOUR_ACTIVITY = "your_activity",
+};
 
 /**
  * Parses, validates, transforms, and returns all action inputs as an object
@@ -47,40 +47,42 @@ function getInputs(core: typeof CoreLibrary) {
   // Getter and validator for each individual input
   function getInput(
     name: string,
-    type: inputType.boolean,
+    type: INPUT_TYPE.boolean,
     required: boolean
   ): boolean;
   function getInput(
     name: string,
-    type: inputType.reasonList | inputType.repositoryList,
+    type: INPUT_TYPE.reasonList | INPUT_TYPE.repositoryList,
     required: boolean
   ): Array<string>;
   function getInput(
     name: string,
-    type: inputType.string,
+    type: INPUT_TYPE.string,
     required: boolean
   ): string;
   function getInput(
     name: string,
-    type: inputType,
+    type: INPUT_TYPE,
     required: boolean
   ): boolean | Array<string> | string {
+    const reasonsArr = Object.values(REASONS);
+
     let input;
-    if (type === inputType.string) {
+    if (type === INPUT_TYPE.string) {
       input = core.getInput(name, { required });
       // Validate
       if (required && !input) {
         throw new Error(`Input <${name}> is a required string.`);
       }
-    } else if (type === inputType.boolean) {
+    } else if (type === INPUT_TYPE.boolean) {
       input = core.getBooleanInput(name, { required });
       // Validate
       if (required && !input) {
         throw new Error(`Input <${name}> is a required boolean.`);
       }
     } else if (
-      type === inputType.reasonList ||
-      type === inputType.repositoryList
+      type === INPUT_TYPE.reasonList ||
+      type === INPUT_TYPE.repositoryList
     ) {
       input = core.getInput(name, { required });
       if (input) {
@@ -93,9 +95,9 @@ function getInputs(core: typeof CoreLibrary) {
         }
         if (input?.length) {
           // Validate that array only contains "reason" values if reason
-          if (inputType.reasonList) {
+          if (type === INPUT_TYPE.reasonList) {
             const allPass = input.every((reason: string) => {
-              if (!reasons.includes(reason.toLowerCase())) {
+              if (!reasonsArr.includes(reason.toLowerCase() as REASONS)) {
                 core.error(
                   `"${reason}" is not a valid notification reason type. Please refer to "Filtering Inputs" in README.md.`
                 );
@@ -105,12 +107,12 @@ function getInputs(core: typeof CoreLibrary) {
             });
             if (!allPass) {
               throw new Error(
-                `Invalid reason in filter input. Valid reasons: [${reasons.join(
+                `Invalid reason in filter input. Valid reasons: [${reasonsArr.join(
                   ", "
                 )}]`
               );
             }
-          } else if (inputType.repositoryList) {
+          } else if (type === INPUT_TYPE.repositoryList) {
             const allPass = input.every((repository: string) => {
               if (!repository.match(/([A-Za-z0-9_.-]*\/[A-Za-z0-9_.-]*)/g)) {
                 core.error(
@@ -138,48 +140,48 @@ function getInputs(core: typeof CoreLibrary) {
 
   // All inputs
   return {
-    actionSchedule: getInput(inputs.actionSchedule, inputType.string, true),
-    githubToken: getInput(inputs.githubToken, inputType.string, true),
-    slackToken: getInput(inputs.slackToken, inputType.string, true),
-    destination: getInput(inputs.destination, inputType.string, true),
+    actionSchedule: getInput(INPUTS.actionSchedule, INPUT_TYPE.string, true),
+    githubToken: getInput(INPUTS.githubToken, INPUT_TYPE.string, true),
+    slackToken: getInput(INPUTS.slackToken, INPUT_TYPE.string, true),
+    destination: getInput(INPUTS.destination, INPUT_TYPE.string, true),
     filterIncludeReasons: getInput(
-      inputs.filterIncludeReasons,
-      inputType.reasonList,
+      INPUTS.filterIncludeReasons,
+      INPUT_TYPE.reasonList,
       false,
     ),
     filterExcludeReasons: getInput(
-      inputs.filterExcludeReasons,
-      inputType.reasonList,
+      INPUTS.filterExcludeReasons,
+      INPUT_TYPE.reasonList,
       false,
     ),
     filterIncludeRepositories: getInput(
-      inputs.filterIncludeRepositories,
-      inputType.repositoryList,
+      INPUTS.filterIncludeRepositories,
+      INPUT_TYPE.repositoryList,
       false
     ),
     filterExcludeRepositories: getInput(
-      inputs.filterExcludeRepositories,
-      inputType.repositoryList,
+      INPUTS.filterExcludeRepositories,
+      INPUT_TYPE.repositoryList,
       false
     ),
     filterOnlyParticipating: getInput(
-      inputs.filterOnlyParticipating,
-      inputType.boolean,
+      INPUTS.filterOnlyParticipating,
+      INPUT_TYPE.boolean,
       false
     ),
     filterOnlyUnread: getInput(
-      inputs.filterOnlyUnread,
-      inputType.boolean,
+      INPUTS.filterOnlyUnread,
+      INPUT_TYPE.boolean,
       false
     ),
     rollupNotifications: getInput(
-      inputs.rollupNotifications,
-      inputType.boolean,
+      INPUTS.rollupNotifications,
+      INPUT_TYPE.boolean,
       false
     ),
-    markAsRead: getInput(inputs.markAsRead, inputType.boolean, false),
-    paginateAll: getInput(inputs.paginateAll, inputType.boolean, false),
-    timezone: getInput(inputs.timezone, inputType.string, false),
+    markAsRead: getInput(INPUTS.markAsRead, INPUT_TYPE.boolean, false),
+    paginateAll: getInput(INPUTS.paginateAll, INPUT_TYPE.boolean, false),
+    timezone: getInput(INPUTS.timezone, INPUT_TYPE.string, false),
   };
 }
 

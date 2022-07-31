@@ -34,7 +34,7 @@ inputs:
     required: false
     default: "false"
   filter-only-unread:
-    description: 'Set to "true" to only forward notifications not already marked as "read"'
+    description: 'Set to "false" to forward notifications that are already marked as "read"'
     required: false
     default: "true"
   rollup-notifications:

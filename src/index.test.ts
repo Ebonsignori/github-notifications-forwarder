@@ -2,9 +2,10 @@ import * as CoreLibrary from "@actions/core";
 import test from "ava";
 import sinon from "sinon";
 import { Endpoints } from "@octokit/types";
+import MockDate from "mockdate";
 
 import run from "./index.js";
-import { inputs } from "./lib/get-inputs.js";
+import { INPUTS, REASONS } from "./lib/get-inputs.js";
 
 const defaultEnv = {
   "action-schedule": "0 */3 * * *",
@@ -14,8 +15,10 @@ const defaultEnv = {
   "filter-include-reasons":
     "assign, author, ci_activity, comment, manual, mention, push, review_requested, security_alert, state_change, subscribed, team_mention, your_activity",
   "filter-exclude-reasons": "",
+  "filter-include-repositories": "",
+  "filter-exclude-repositories": "",
   "filter-only-participating": "false",
-  "filter-only-unread": "false",
+  "filter-only-unread": "true",
   "rollup-notifications": "true",
   "mark-as-read": "false",
   "paginate-all": "false",
@@ -24,7 +27,7 @@ const defaultEnv = {
 
 function setMockEnv(envMap: { [key: string]: any }) {
   // Clear existing env
-  for (const input of Object.values(inputs)) {
+  for (const input of Object.values(INPUTS)) {
     process.env[input] = "";
   }
 
@@ -40,55 +43,77 @@ function setMockEnv(envMap: { [key: string]: any }) {
   }
 }
 
-function mockCore() {
-  return {
-    info: sinon.stub().callsFake((args) => console.log(args)),
+function mockGetCore() {
+  // const core = {
+    // info: sinon.stub().callsFake((args) => console.log(args)),
+    // error: sinon.stub().callsFake((args) => console.log(args)),
+    // getInput: CoreLibrary.getInput,
+    // getBooleanInput: CoreLibrary.getBooleanInput,
+    // setFailed: sinon.stub().callsFake((args) => console.log(args)),
+  // };
+  const core = {
+    info: sinon.stub().callsFake((args) => {}),
     error: sinon.stub().callsFake((args) => {}),
     getInput: CoreLibrary.getInput,
     getBooleanInput: CoreLibrary.getBooleanInput,
     setFailed: sinon.stub().callsFake((args) => {}),
   };
+  return () => core;
 }
 
-function mockOctokit(
+function mockGetOctokit(
   notifications?: Endpoints["GET /notifications"]["response"]["data"]
 ) {
-  return class MockOctokit {
-    constructor() {
-      return {
-        rest: {
-          activity: {
-            listNotificationsForAuthenticatedUser: sinon
-              .stub()
-              .resolves({ data: notifications }),
-          },
-        },
-        paginate: sinon.stub().resolves(notifications),
-      };
-    }
+  const octokit = {
+    rest: {
+      activity: {
+        listNotificationsForAuthenticatedUser: sinon
+          .stub()
+          .resolves({ data: notifications }),
+      },
+    },
+    paginate: sinon.stub().resolves(notifications),
   };
+  return () => octokit;
 }
 
-function mockSlack() {
-  return class MockSlack {
-    constructor() {}
-    chat() {
-      return {
-        postMessage: sinon.stub(),
-      };
-    }
+function mockGetSlack() {
+  const slack = {
+    chat: {
+      postMessage: sinon.stub(),
+    },
   };
+  return () => slack;
+}
+
+function createMockNotification(title: string, repository: string, reason: REASONS): Endpoints["GET /notifications"]["response"]["data"][0] {
+  const notification = {
+    id: `<id for - "${title}">`,
+    url: `<url for - "${title}">`,
+    reason: reason,
+    subject: {
+      title: title,
+    },
+    repository: {
+      full_name: repository,
+      html_url: `<repository url for - "${repository}">`,
+    }
+  }
+
+  return notification as Endpoints["GET /notifications"]["response"]["data"][0]
 }
 
 test("errors when required argument is omitted", async (t) => {
   setMockEnv({
     "github-token": "",
   });
-  const core = mockCore();
-  const octokit = mockOctokit();
-  const slack = mockSlack();
+  const getCore = mockGetCore();
+  const octokit = mockGetOctokit();
+  const slack = mockGetSlack();
 
-  await run(core as any, octokit as any, slack as any);
+  await run(getCore as any, octokit as any, slack as any);
+
+  const core = getCore();
 
   t.true(
     core.setFailed.calledWithMatch(
@@ -101,11 +126,13 @@ test("errors on invalid action-schedule", async (t) => {
   setMockEnv({
     "action-schedule": "a b c",
   });
-  const core = mockCore();
-  const octokit = mockOctokit();
-  const slack = mockSlack();
+  const getCore = mockGetCore();
+  const octokit = mockGetOctokit();
+  const slack = mockGetSlack();
 
-  await run(core as any, octokit as any, slack as any);
+  await run(getCore as any, octokit as any, slack as any);
+
+  const core = getCore();
 
   t.true(core.setFailed.calledWithMatch("Invalid <action-schedule>"));
 });
@@ -114,52 +141,239 @@ test("errors when invalid filter reason is set", async (t) => {
   setMockEnv({
     "filter-include-reasons": "<all the things I want to hear>",
   });
-  const core = mockCore();
-  const octokit = mockOctokit();
-  const slack = mockSlack();
+  const getCore = mockGetCore();
+  const octokit = mockGetOctokit();
+  const slack = mockGetSlack();
 
-  await run(core as any, octokit as any, slack as any);
+  await run(getCore as any, octokit as any, slack as any);
+
+  const core = getCore();
 
   t.true(core.setFailed.calledWithMatch("Invalid reason in filter input."));
 });
 
+test("errors when invalid filter repository is set", async (t) => {
+  setMockEnv({
+    "filter-include-repositories": "not-a-full-name",
+  });
+  const getCore = mockGetCore();
+  const octokit = mockGetOctokit();
+  const slack = mockGetSlack();
+
+  await run(getCore as any, octokit as any, slack as any);
+
+  const core = getCore();
+
+  t.true(core.setFailed.calledWithMatch("Invalid repository in filter input."));
+});
+
 test("exits when no new notifications", async (t) => {
   setMockEnv({});
-  const core = mockCore();
-  const octokit = mockOctokit([]);
-  const slack = mockSlack();
+  const getCore = mockGetCore();
+  const octokit = mockGetOctokit([]);
+  const slack = mockGetSlack();
 
-  await run(core as any, octokit as any, slack as any);
+  await run(getCore as any, octokit as any, slack as any);
+
+  const core = getCore();
 
   t.true(core.setFailed.notCalled);
   t.true(core.info.calledWithMatch("No new notifications since last run"));
 });
 
-// TODO:
-// test("sends slack message", async (t) => {
-  // setMockEnv({});
-  // const core = mockCore();
-  // const octokit = mockOctokit();
-  // const slack = mockSlack();
+test("determines the previous interval correctly", async (t) => {
+  // Action will often run ~5 minutes after hour
+  MockDate.set("2022-01-30T08:05:00.000Z");
+  setMockEnv({
+    "action-schedule": "0 * * * *",
+  });
+  const getCore = mockGetCore();
+  const getOctokit = mockGetOctokit([]);
+  const getSlack = mockGetSlack();
 
-  // await run(core as any, octokit as any, slack as any);
+  await run(getCore as any, getOctokit as any, getSlack as any);
 
-  // t.true(core.setFailed.notCalled);
-// });
+  const core = getCore();
+  const octokit = getOctokit();
 
-// TODO: verify reason filter
-// test("filters notifications", async (t) => {
-  // setMockEnv({});
-  // const core = mockCore();
-  // const octokit = mockOctokit();
-  // const slack = mockSlack();
+  t.true(core.setFailed.notCalled);
+  // Should be the hour before trigger, so 7am instead of 8am
+  t.is(octokit.rest.activity.listNotificationsForAuthenticatedUser.getCall(0).args[0].since, "2022-01-30T07:00:00.000Z")
 
-  // await run(core as any, octokit as any, slack as any);
+  // But if we call at 7:59am, the previous interval should be 6am
+  MockDate.set("2022-01-30T07:59:00.000Z");
+  setMockEnv({
+    "action-schedule": "0 * * * *",
+  });
+  await run(getCore as any, getOctokit as any, getSlack as any);
 
-  // t.true(core.setFailed.notCalled);
-// });
+  t.true(core.setFailed.notCalled);
+  t.is(octokit.rest.activity.listNotificationsForAuthenticatedUser.callCount, 2);
+  t.is(octokit.rest.activity.listNotificationsForAuthenticatedUser.getCall(1).args[0].since, "2022-01-30T06:00:00.000Z")
+});
 
-// TODO: verify repo filter
+test("sends slack message of notifications using defaults", async (t) => {
+  setMockEnv({});
+  const getCore = mockGetCore();
+  const getOctokit = mockGetOctokit([
+    createMockNotification("<A notification>", "github/github", REASONS.ASSIGN)
+  ]);
+  const getSlack = mockGetSlack();
+
+  await run(getCore as any, getOctokit as any, getSlack as any);
+
+  const core = getCore();
+  const octokit = getOctokit();
+  const slack = getSlack();
+
+  t.true(core.setFailed.notCalled);
+  t.is(octokit.rest.activity.listNotificationsForAuthenticatedUser.callCount, 1);
+  t.false(octokit.rest.activity.listNotificationsForAuthenticatedUser.getCall(0).args[0].all);
+  t.false(octokit.rest.activity.listNotificationsForAuthenticatedUser.getCall(0).args[0].participating);
+  t.is(slack.chat.postMessage.callCount, 1);
+  t.true(slack.chat.postMessage.getCall(0).args[0].text.includes("<A notification>"));
+});
+
+test("filters on filter-include-reasons", async (t) => {
+  setMockEnv({
+    "filter-include-reasons": `${REASONS.ASSIGN}, ${REASONS.PUSH}, ${REASONS.AUTHOR}`
+  });
+  const getCore = mockGetCore();
+  const getOctokit = mockGetOctokit([
+    // Included
+    createMockNotification("<Notification 1>", "github/github", REASONS.ASSIGN),
+    createMockNotification("<Notification 2>", "github/github", REASONS.PUSH),
+    createMockNotification("<Notification 3>", "github/github", REASONS.PUSH),
+    createMockNotification("<Notification 4>", "github/github", REASONS.AUTHOR),
+    // Excluded
+    createMockNotification("<Notification 5>", "github/github", REASONS.CI_ACTIVITY),
+    createMockNotification("<Notification 6>", "github/github", REASONS.CI_ACTIVITY),
+    createMockNotification("<Notification 7>", "github/github", REASONS.TEAM_MENTION),
+  ]);
+  const getSlack = mockGetSlack();
+
+  await run(getCore as any, getOctokit as any, getSlack as any);
+
+  const core = getCore();
+  const octokit = getOctokit();
+  const slack = getSlack();
+
+  t.true(core.setFailed.notCalled);
+  t.is(octokit.rest.activity.listNotificationsForAuthenticatedUser.callCount, 1);
+  t.is(slack.chat.postMessage.callCount, 1);
+  const messageBody = slack.chat.postMessage.getCall(0).args[0].text;
+  t.true(messageBody.includes("<Notification 1>"));
+  t.true(messageBody.includes("<Notification 2>"));
+  t.true(messageBody.includes("<Notification 3>"));
+  t.true(messageBody.includes("<Notification 4>"));
+  t.false(messageBody.includes("<Notification 5>"));
+  t.false(messageBody.includes("<Notification 6>"));
+  t.false(messageBody.includes("<Notification 7>"));
+});
+
+
+test("filters on filter-exclude-reasons", async (t) => {
+  setMockEnv({
+    "filter-exclude-reasons": `${REASONS.CI_ACTIVITY}, ${REASONS.TEAM_MENTION}`
+  });
+  const getCore = mockGetCore();
+  const getOctokit = mockGetOctokit([
+    // Included
+    createMockNotification("<Notification 1>", "github/github", REASONS.ASSIGN),
+    createMockNotification("<Notification 2>", "github/github", REASONS.PUSH),
+    createMockNotification("<Notification 3>", "github/github", REASONS.PUSH),
+    createMockNotification("<Notification 4>", "github/github", REASONS.AUTHOR),
+    // Excluded
+    createMockNotification("<Notification 5>", "github/github", REASONS.CI_ACTIVITY),
+    createMockNotification("<Notification 6>", "github/github", REASONS.CI_ACTIVITY),
+    createMockNotification("<Notification 7>", "github/github", REASONS.TEAM_MENTION),
+  ]);
+  const getSlack = mockGetSlack();
+
+  await run(getCore as any, getOctokit as any, getSlack as any);
+
+  const core = getCore();
+  const octokit = getOctokit();
+  const slack = getSlack();
+
+  t.true(core.setFailed.notCalled);
+  t.is(octokit.rest.activity.listNotificationsForAuthenticatedUser.callCount, 1);
+  t.is(slack.chat.postMessage.callCount, 1);
+  const messageBody = slack.chat.postMessage.getCall(0).args[0].text;
+  t.true(messageBody.includes("<Notification 1>"));
+  t.true(messageBody.includes("<Notification 2>"));
+  t.true(messageBody.includes("<Notification 3>"));
+  t.true(messageBody.includes("<Notification 4>"));
+  t.false(messageBody.includes("<Notification 5>"));
+  t.false(messageBody.includes("<Notification 6>"));
+  t.false(messageBody.includes("<Notification 7>"));
+});
+
+test("filters on filter-include-repositories", async (t) => {
+  setMockEnv({
+    "filter-include-repositories": `github/docs, ebonsignori/github-slack-notifications-forwarder`,
+  });
+  const getCore = mockGetCore();
+  const getOctokit = mockGetOctokit([
+    // Included
+    createMockNotification("<Notification 1>", "github/docs", REASONS.PUSH),
+    createMockNotification("<Notification 2>", "github/docs", REASONS.AUTHOR),
+    createMockNotification("<Notification 3>", "ebonsignori/github-slack-notifications-forwarder", REASONS.AUTHOR),
+    // Excluded
+    createMockNotification("<Notification 4>", "github/github", REASONS.ASSIGN),
+    createMockNotification("<Notification 5>", "github/howie", REASONS.PUSH),
+  ]);
+  const getSlack = mockGetSlack();
+
+  await run(getCore as any, getOctokit as any, getSlack as any);
+
+  const core = getCore();
+  const octokit = getOctokit();
+  const slack = getSlack();
+
+  t.true(core.setFailed.notCalled);
+  t.is(octokit.rest.activity.listNotificationsForAuthenticatedUser.callCount, 1);
+  t.is(slack.chat.postMessage.callCount, 1);
+  const messageBody = slack.chat.postMessage.getCall(0).args[0].text;
+  t.true(messageBody.includes("<Notification 1>"));
+  t.true(messageBody.includes("<Notification 2>"));
+  t.true(messageBody.includes("<Notification 3>"));
+  t.false(messageBody.includes("<Notification 4>"));
+  t.false(messageBody.includes("<Notification 5>"));
+});
+
+test("filters on filter-exclude-repositories", async (t) => {
+  setMockEnv({
+    "filter-exclude-repositories": `github/docs, ebonsignori/github-slack-notifications-forwarder`,
+  });
+  const getCore = mockGetCore();
+  const getOctokit = mockGetOctokit([
+    // Excluded
+    createMockNotification("<Notification 1>", "github/docs", REASONS.PUSH),
+    createMockNotification("<Notification 2>", "github/docs", REASONS.AUTHOR),
+    createMockNotification("<Notification 3>", "ebonsignori/github-slack-notifications-forwarder", REASONS.AUTHOR),
+    // Included
+    createMockNotification("<Notification 4>", "github/github", REASONS.ASSIGN),
+    createMockNotification("<Notification 5>", "github/howie", REASONS.PUSH),
+  ]);
+  const getSlack = mockGetSlack();
+
+  await run(getCore as any, getOctokit as any, getSlack as any);
+
+  const core = getCore();
+  const octokit = getOctokit();
+  const slack = getSlack();
+
+  t.true(core.setFailed.notCalled);
+  t.is(octokit.rest.activity.listNotificationsForAuthenticatedUser.callCount, 1);
+  t.is(slack.chat.postMessage.callCount, 1);
+  const messageBody = slack.chat.postMessage.getCall(0).args[0].text;
+  t.false(messageBody.includes("<Notification 1>"));
+  t.false(messageBody.includes("<Notification 2>"));
+  t.false(messageBody.includes("<Notification 3>"));
+  t.true(messageBody.includes("<Notification 4>"));
+  t.true(messageBody.includes("<Notification 5>"));
+});
 
 // TODO: Test rollup-notifications
 // TODO: test timezone
