@@ -123,7 +123,7 @@ function run(getCore, getOctokit, getSlack) {
                 }
             }
             if (!notificationsFetch.length) {
-                return core.info(`No new notifications since last run with given filters:\n<filter-only-unread>: ${inputs.filterOnlyUnread}\n<filter-only-participating>: ${inputs.filterOnlyParticipating}`);
+                return core.info(`No new notifications fetched since last run with given filters:\n<filter-only-unread>: ${inputs.filterOnlyUnread}\n<filter-only-participating>: ${inputs.filterOnlyParticipating}\n<`);
             }
             let notifications = notificationsFetch;
             // Filter notifications to include/exclude user defined "reason"s
@@ -141,7 +141,7 @@ function run(getCore, getOctokit, getSlack) {
                 notifications = notifications.filter((notification) => !inputs.filterExcludeRepositories.includes(notification.repository.full_name.toLowerCase()));
             }
             if (!notifications.length) {
-                return core.info(`No new notifications since last run with given filters.`);
+                return core.info(`No new notifications since last run after running through all filters: ${displayFilters(inputs)}`);
             }
             // Send Slack Message
             core.info("Forwarding notifications to Slack...");
@@ -153,6 +153,16 @@ function run(getCore, getOctokit, getSlack) {
             core.setFailed(error === null || error === void 0 ? void 0 : error.message);
         }
     });
+}
+function displayFilters(inputs) {
+    return `
+  <filter-only-unread>: ${inputs.filterOnlyUnread}
+  <filter-only-participating>: ${inputs.filterOnlyParticipating}
+  <filter-include-reasons>: ${inputs.filterIncludeReasons.join(", ")}
+  <filter-exclude-reasons>: ${inputs.filterExcludeReasons.join(", ")}
+  <filter-include-repositories>: ${inputs.filterIncludeRepositories.join(", ")}
+  <filter-exclude-repositories>: ${inputs.filterExcludeRepositories.join(", ")}
+  `;
 }
 // export `run` function for testing
 exports["default"] = run;
