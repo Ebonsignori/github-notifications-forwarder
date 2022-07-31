@@ -52,18 +52,28 @@ const send_to_slack_1 = __importDefault(__nccwpck_require__(670));
 const ExtendedOctokit = octokit_1.Octokit.plugin(plugin_throttling_1.throttling);
 // Call `run()` directly if this file is the entry point
 if (require.main === require.cache[eval('__filename')]) {
-    run(CoreLibrary, ExtendedOctokit, web_api_1.WebClient);
+    const getCore = () => {
+        return CoreLibrary;
+    };
+    const getOctokit = (inputs) => {
+        return new ExtendedOctokit({ auth: inputs.githubToken });
+    };
+    const getSlack = (inputs) => {
+        return new web_api_1.WebClient(inputs.slackToken);
+    };
+    run(getCore, getOctokit, getSlack);
 }
 /**
  * Entry logic for notifications forwarder
  */
-function run(core, InstanceOctokit, InstanceSlack) {
+function run(getCore, getOctokit, getSlack) {
     return __awaiter(this, void 0, void 0, function* () {
+        const core = getCore();
         try {
             // Initialize
             const inputs = (0, get_inputs_1.default)(core);
-            const octokit = new InstanceOctokit({ auth: inputs.githubToken });
-            const slack = new InstanceSlack(inputs.slackToken);
+            const octokit = getOctokit(inputs);
+            const slack = getSlack(inputs);
             const currentDate = new Date().toISOString();
             // Get the last date that the action should have run
             let lastRunDate;
@@ -81,7 +91,7 @@ function run(core, InstanceOctokit, InstanceSlack) {
                 throw new Error(`Invalid <action-schedule>, "${inputs.actionSchedule}". Please use the same cron string you use to schedule your workflow_dispatch.`);
             }
             // Fetch notifications since last date
-            core.info(`Fetching notifications between ${lastRunDate.toISOString()} and ${currentDate} (now)...`);
+            core.info(`Fetching notifications between ${lastRunDate.toISOString()} and now, ${currentDate} UTC...`);
             let notificationsFetch;
             if (inputs.paginateAll) {
                 try {
@@ -127,7 +137,7 @@ function run(core, InstanceOctokit, InstanceSlack) {
             if (inputs.filterIncludeRepositories.length) {
                 notifications = notifications.filter((notification) => inputs.filterIncludeRepositories.includes(notification.repository.full_name.toLowerCase()));
             }
-            if (inputs.filterExcludeReasons.length) {
+            if (inputs.filterExcludeRepositories.length) {
                 notifications = notifications.filter((notification) => !inputs.filterExcludeRepositories.includes(notification.repository.full_name.toLowerCase()));
             }
             if (!notifications.length) {
@@ -156,68 +166,71 @@ exports["default"] = run;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.inputs = void 0;
-var inputType;
-(function (inputType) {
-    inputType["string"] = "STRING";
-    inputType["boolean"] = "BOOLEAN";
-    inputType["reasonList"] = "REASON_LIST";
-    inputType["repositoryList"] = "REPOSITORY_LIST";
-})(inputType || (inputType = {}));
-var inputs;
-(function (inputs) {
-    inputs["actionSchedule"] = "action-schedule";
-    inputs["githubToken"] = "github-token";
-    inputs["slackToken"] = "slack-token";
-    inputs["destination"] = "destination";
-    inputs["filterIncludeReasons"] = "filter-include-reasons";
-    inputs["filterExcludeReasons"] = "filter-exclude-reasons";
-    inputs["filterIncludeRepositories"] = "filter-include-repositories";
-    inputs["filterExcludeRepositories"] = "filter-exclude-repositories";
-    inputs["filterOnlyParticipating"] = "filter-only-participating";
-    inputs["filterOnlyUnread"] = "filter-only-unread";
-    inputs["rollupNotifications"] = "rollup-notifications";
-    inputs["markAsRead"] = "mark-as-read";
-    inputs["paginateAll"] = "paginate-all";
-    inputs["timezone"] = "timezone";
-})(inputs = exports.inputs || (exports.inputs = {}));
-const reasons = [
-    "assign",
-    "author",
-    "ci_activity",
-    "comment",
-    "manual",
-    "mention",
-    "push",
-    "review_requested",
-    "security_alert",
-    "state_change",
-    "subscribed",
-    "team_mention",
-    "your_activity",
-];
+exports.REASONS = exports.INPUTS = void 0;
+var INPUT_TYPE;
+(function (INPUT_TYPE) {
+    INPUT_TYPE["string"] = "STRING";
+    INPUT_TYPE["boolean"] = "BOOLEAN";
+    INPUT_TYPE["reasonList"] = "REASON_LIST";
+    INPUT_TYPE["repositoryList"] = "REPOSITORY_LIST";
+})(INPUT_TYPE || (INPUT_TYPE = {}));
+var INPUTS;
+(function (INPUTS) {
+    INPUTS["actionSchedule"] = "action-schedule";
+    INPUTS["githubToken"] = "github-token";
+    INPUTS["slackToken"] = "slack-token";
+    INPUTS["destination"] = "destination";
+    INPUTS["filterIncludeReasons"] = "filter-include-reasons";
+    INPUTS["filterExcludeReasons"] = "filter-exclude-reasons";
+    INPUTS["filterIncludeRepositories"] = "filter-include-repositories";
+    INPUTS["filterExcludeRepositories"] = "filter-exclude-repositories";
+    INPUTS["filterOnlyParticipating"] = "filter-only-participating";
+    INPUTS["filterOnlyUnread"] = "filter-only-unread";
+    INPUTS["rollupNotifications"] = "rollup-notifications";
+    INPUTS["markAsRead"] = "mark-as-read";
+    INPUTS["paginateAll"] = "paginate-all";
+    INPUTS["timezone"] = "timezone";
+})(INPUTS = exports.INPUTS || (exports.INPUTS = {}));
+var REASONS;
+(function (REASONS) {
+    REASONS["ASSIGN"] = "assign";
+    REASONS["AUTHOR"] = "author";
+    REASONS["CI_ACTIVITY"] = "ci_activity";
+    REASONS["COMMENT"] = "comment";
+    REASONS["MANUAL"] = "manual";
+    REASONS["MENTION"] = "mention";
+    REASONS["PUSH"] = "push";
+    REASONS["REVIEW_REQUESTED"] = "review_requested";
+    REASONS["SECURITY_ALERT"] = "security_alert";
+    REASONS["STATE_CHANGE"] = "state_change";
+    REASONS["SUBSCRIBED"] = "subscribed";
+    REASONS["TEAM_MENTION"] = "team_mention";
+    REASONS["YOUR_ACTIVITY"] = "your_activity";
+})(REASONS = exports.REASONS || (exports.REASONS = {}));
+;
 /**
  * Parses, validates, transforms, and returns all action inputs as an object
  */
 function getInputs(core) {
     function getInput(name, type, required) {
+        const reasonsArr = Object.values(REASONS);
         let input;
-        if (type === inputType.string) {
+        if (type === INPUT_TYPE.string) {
             input = core.getInput(name, { required });
             // Validate
             if (required && !input) {
                 throw new Error(`Input <${name}> is a required string.`);
             }
         }
-        else if (type === inputType.boolean) {
+        else if (type === INPUT_TYPE.boolean) {
             input = core.getBooleanInput(name, { required });
             // Validate
             if (required && !input) {
                 throw new Error(`Input <${name}> is a required boolean.`);
             }
         }
-        else if (type === inputType.reasonList ||
-            type === inputType.repositoryList) {
+        else if (type === INPUT_TYPE.reasonList ||
+            type === INPUT_TYPE.repositoryList) {
             input = core.getInput(name, { required });
             if (input) {
                 input = input.split(",").map((opt) => opt.trim().toLowerCase());
@@ -227,19 +240,19 @@ function getInputs(core) {
                 }
                 if (input === null || input === void 0 ? void 0 : input.length) {
                     // Validate that array only contains "reason" values if reason
-                    if (inputType.reasonList) {
+                    if (type === INPUT_TYPE.reasonList) {
                         const allPass = input.every((reason) => {
-                            if (!reasons.includes(reason.toLowerCase())) {
+                            if (!reasonsArr.includes(reason.toLowerCase())) {
                                 core.error(`"${reason}" is not a valid notification reason type. Please refer to "Filtering Inputs" in README.md.`);
                                 return false;
                             }
                             return true;
                         });
                         if (!allPass) {
-                            throw new Error(`Invalid reason in filter input. Valid reasons: [${reasons.join(", ")}]`);
+                            throw new Error(`Invalid reason in filter input. Valid reasons: [${reasonsArr.join(", ")}]`);
                         }
                     }
-                    else if (inputType.repositoryList) {
+                    else if (type === INPUT_TYPE.repositoryList) {
                         const allPass = input.every((repository) => {
                             if (!repository.match(/([A-Za-z0-9_.-]*\/[A-Za-z0-9_.-]*)/g)) {
                                 core.error(`"${repository}" is not a valid repository name. Must be in the form owner/repo.`);
@@ -261,20 +274,20 @@ function getInputs(core) {
     }
     // All inputs
     return {
-        actionSchedule: getInput(inputs.actionSchedule, inputType.string, true),
-        githubToken: getInput(inputs.githubToken, inputType.string, true),
-        slackToken: getInput(inputs.slackToken, inputType.string, true),
-        destination: getInput(inputs.destination, inputType.string, true),
-        filterIncludeReasons: getInput(inputs.filterIncludeReasons, inputType.reasonList, false),
-        filterExcludeReasons: getInput(inputs.filterExcludeReasons, inputType.reasonList, false),
-        filterIncludeRepositories: getInput(inputs.filterIncludeRepositories, inputType.repositoryList, false),
-        filterExcludeRepositories: getInput(inputs.filterExcludeRepositories, inputType.repositoryList, false),
-        filterOnlyParticipating: getInput(inputs.filterOnlyParticipating, inputType.boolean, false),
-        filterOnlyUnread: getInput(inputs.filterOnlyUnread, inputType.boolean, false),
-        rollupNotifications: getInput(inputs.rollupNotifications, inputType.boolean, false),
-        markAsRead: getInput(inputs.markAsRead, inputType.boolean, false),
-        paginateAll: getInput(inputs.paginateAll, inputType.boolean, false),
-        timezone: getInput(inputs.timezone, inputType.string, false),
+        actionSchedule: getInput(INPUTS.actionSchedule, INPUT_TYPE.string, true),
+        githubToken: getInput(INPUTS.githubToken, INPUT_TYPE.string, true),
+        slackToken: getInput(INPUTS.slackToken, INPUT_TYPE.string, true),
+        destination: getInput(INPUTS.destination, INPUT_TYPE.string, true),
+        filterIncludeReasons: getInput(INPUTS.filterIncludeReasons, INPUT_TYPE.reasonList, false),
+        filterExcludeReasons: getInput(INPUTS.filterExcludeReasons, INPUT_TYPE.reasonList, false),
+        filterIncludeRepositories: getInput(INPUTS.filterIncludeRepositories, INPUT_TYPE.repositoryList, false),
+        filterExcludeRepositories: getInput(INPUTS.filterExcludeRepositories, INPUT_TYPE.repositoryList, false),
+        filterOnlyParticipating: getInput(INPUTS.filterOnlyParticipating, INPUT_TYPE.boolean, false),
+        filterOnlyUnread: getInput(INPUTS.filterOnlyUnread, INPUT_TYPE.boolean, false),
+        rollupNotifications: getInput(INPUTS.rollupNotifications, INPUT_TYPE.boolean, false),
+        markAsRead: getInput(INPUTS.markAsRead, INPUT_TYPE.boolean, false),
+        paginateAll: getInput(INPUTS.paginateAll, INPUT_TYPE.boolean, false),
+        timezone: getInput(INPUTS.timezone, INPUT_TYPE.string, false),
     };
 }
 exports["default"] = getInputs;
@@ -298,7 +311,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 function renderNotificationMessage(notification) {
-    return `<${notification.repository.html_url}|${notification.repository.full_name}>\n<${notification.url}|${notification.subject.title}>`;
+    // return `<${notification.repository.html_url}|${notification.repository.full_name}>\n<${notification.url}|${notification.subject.title}>`;
+    return `*${notification.repository.full_name}*\n<${notification.url}|${notification.subject.title}>`;
 }
 /**
  * Renders notifications for Slack and then sends them
