@@ -95,7 +95,7 @@ async function run(
 
     if (!notificationsFetch.length) {
       return core.info(
-        `No new notifications since last run with given filters:\n<filter-only-unread>: ${inputs.filterOnlyUnread}\n<filter-only-participating>: ${inputs.filterOnlyParticipating}`
+        `No new notifications fetched since last run with given filters:\n<filter-only-unread>: ${inputs.filterOnlyUnread}\n<filter-only-participating>: ${inputs.filterOnlyParticipating}\n<`
       );
     }
 
@@ -135,7 +135,7 @@ async function run(
 
     if (!notifications.length) {
       return core.info(
-        `No new notifications since last run with given filters.`
+        `No new notifications since last run after running through all filters: ${displayFilters(inputs)}`
       );
     }
 
@@ -148,6 +148,17 @@ async function run(
     core.error(error);
     core.setFailed(error?.message);
   }
+}
+
+function displayFilters(inputs) {
+  return `
+  <filter-only-unread>: ${inputs.filterOnlyUnread}
+  <filter-only-participating>: ${inputs.filterOnlyParticipating}
+  <filter-include-reasons>: ${inputs.filterIncludeReasons.join(", ")}
+  <filter-exclude-reasons>: ${inputs.filterExcludeReasons.join(", ")}
+  <filter-include-repositories>: ${inputs.filterIncludeRepositories.join(", ")}
+  <filter-exclude-repositories>: ${inputs.filterExcludeRepositories.join(", ")}
+  `
 }
 
 // export `run` function for testing

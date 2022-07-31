@@ -178,7 +178,7 @@ test("exits when no new notifications", async (t) => {
   const core = getCore();
 
   t.true(core.setFailed.notCalled);
-  t.true(core.info.calledWithMatch("No new notifications since last run"));
+  t.true(core.info.calledWithMatch("No new notifications fetched since last run"));
 });
 
 test("determines the previous interval correctly", async (t) => {
