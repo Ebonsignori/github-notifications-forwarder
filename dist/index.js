@@ -221,17 +221,36 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const BASE = `https://github.com`;
 function determineUrl(core, octokit, inputs, notification) {
-    var _a;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
+        const urlResource = (_a = /[^/]*$/.exec(notification.subject.url)) === null || _a === void 0 ? void 0 : _a[0];
         if (notification.subject.type === "Discussion") {
             return `${BASE}/${notification.repository.full_name}/discussions?${encodeURI(notification.subject.title)}`;
+        }
+        if (notification.subject.type === "Release") {
+            return `${BASE}/${notification.repository.full_name}/releases/tag/${notification.subject.title}`;
+        }
+        if (notification.subject.type === "Release") {
+            return `${BASE}/${notification.repository.full_name}/releases/tag/${notification.subject.title}`;
+        }
+        if (notification.subject.type === "PullRequest" && urlResource) {
+            return `${BASE}/${notification.repository.full_name}/pull/${urlResource}`;
+        }
+        if (notification.subject.type === "Issue" && urlResource) {
+            return `${BASE}/${notification.repository.full_name}/issues/${urlResource}`;
+        }
+        if (notification.subject.type === "CheckSuite") {
+            return `${BASE}/${notification.repository.full_name}/actions`;
+        }
+        if (notification.subject.type === "CheckSuite") {
+            return `${BASE}/${notification.repository.full_name}/actions`;
         }
         // If no hard-coded method for fetching URL is defined, try .request to get the `html_url`
         let notificationHtmlURL;
         if (notification.subject.url) {
             try {
                 const notificationSubject = yield octokit.request(notification.subject.url);
-                notificationHtmlURL = (_a = notificationSubject === null || notificationSubject === void 0 ? void 0 : notificationSubject.data) === null || _a === void 0 ? void 0 : _a.html_url;
+                notificationHtmlURL = (_b = notificationSubject === null || notificationSubject === void 0 ? void 0 : notificationSubject.data) === null || _b === void 0 ? void 0 : _b.html_url;
                 // If there still isn't an html_url, it lives on another key
                 if (inputs.debugLogging && !notificationHtmlURL) {
                     core.warning(`Unable to find URL from linked api url for notification\nid :${notification.id}\nsubject:${JSON.stringify(notification.subject, null, 2)}\subject.url request: ${JSON.stringify(notificationSubject.data, null, 2)}`);

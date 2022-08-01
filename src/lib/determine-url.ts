@@ -10,10 +10,41 @@ export default async function determineUrl(
   inputs,
   notification: Endpoints["GET /notifications"]["response"]["data"][0]
 ) {
+  const urlResource = /[^/]*$/.exec(notification.subject.url)?.[0];
   if (notification.subject.type === "Discussion") {
     return `${BASE}/${
       notification.repository.full_name
     }/discussions?${encodeURI(notification.subject.title)}`;
+  }
+  if (notification.subject.type === "Release") {
+    return `${BASE}/${
+      notification.repository.full_name
+    }/releases/tag/${notification.subject.title}`;
+  }
+  if (notification.subject.type === "Release") {
+    return `${BASE}/${
+      notification.repository.full_name
+    }/releases/tag/${notification.subject.title}`;
+  }
+  if (notification.subject.type === "PullRequest" && urlResource) {
+    return `${BASE}/${
+      notification.repository.full_name
+    }/pull/${urlResource}`
+  }
+  if (notification.subject.type === "Issue" && urlResource) {
+    return `${BASE}/${
+      notification.repository.full_name
+    }/issues/${urlResource}`
+  }
+  if (notification.subject.type === "CheckSuite") {
+    return `${BASE}/${
+      notification.repository.full_name
+    }/actions`
+  }
+  if (notification.subject.type === "CheckSuite") {
+    return `${BASE}/${
+      notification.repository.full_name
+    }/actions`
   }
 
   // If no hard-coded method for fetching URL is defined, try .request to get the `html_url`
