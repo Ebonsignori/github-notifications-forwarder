@@ -126,6 +126,7 @@ function run(getCore, getOctokit, getSlack) {
                 return core.info(`No new notifications fetched since last run with given filters:\n<filter-only-unread>: ${inputs.filterOnlyUnread}\n<filter-only-participating>: ${inputs.filterOnlyParticipating}`);
             }
             let notifications = notificationsFetch;
+            core.info(`${notifications.length} notifications fetched before filtering.`);
             // Filter notifications to include/exclude user defined "reason"s
             if (inputs.filterIncludeReasons.length) {
                 notifications = notifications.filter((notification) => inputs.filterIncludeReasons.includes(notification.reason.toLowerCase()));
@@ -143,14 +144,30 @@ function run(getCore, getOctokit, getSlack) {
             if (!notifications.length) {
                 return core.info(`No new notifications since last run after running through all filters: ${displayFilters(inputs)}`);
             }
+            for (const notification of notifications) {
+                console.log(notification);
+                console.log(notification.subject.url);
+                const item = yield octokit.request(notification.subject.url);
+                console.log(item);
+            }
             // Default return is DESC, we want ASC to show oldest first
             if (inputs.sortOldestFirst) {
                 notifications = notifications.reverse();
             }
             // Send Slack Message
-            core.info("Forwarding notifications to Slack...");
+            core.info(`Forwarding ${notifications.length} notifications to Slack...`);
             yield (0, send_to_slack_1.default)(core, slack, inputs, notifications);
-            return core.info("Notification message(s) sent!");
+            core.info("Notification message(s) sent!");
+            // Mark notifications as read if configured to
+            if (inputs.markAsRead) {
+                core.info("Marking ${notifications.length} as read...");
+                for (const notification of notifications) {
+                    yield octokit.rest.activity.markThreadAsRead({
+                        thread_id: notification.id,
+                    });
+                }
+            }
+            core.info("Action complete!");
         }
         catch (error) {
             core.error(error);
@@ -201,13 +218,12 @@ var INPUTS;
     INPUTS["filterExcludeRepositories"] = "filter-exclude-repositories";
     INPUTS["filterOnlyParticipating"] = "filter-only-participating";
     INPUTS["filterOnlyUnread"] = "filter-only-unread";
-    INPUTS["rollupNotifications"] = "rollup-notifications";
+    INPUTS["markAsRead"] = "mark-as-read";
     INPUTS["sortOldestFirst"] = "sort-oldest-first";
     INPUTS["timezone"] = "timezone";
     INPUTS["dateFormat"] = "date-format";
     INPUTS["paginateAll"] = "paginate-all";
-    // TODO: When supported in API
-    INPUTS["markAsRead"] = "mark-as-read";
+    INPUTS["rollupNotifications"] = "rollup-notifications";
 })(INPUTS = exports.INPUTS || (exports.INPUTS = {}));
 var REASONS;
 (function (REASONS) {
@@ -302,13 +318,12 @@ function getInputs(core) {
         filterExcludeRepositories: getInput(INPUTS.filterExcludeRepositories, INPUT_TYPE.repositoryList, false),
         filterOnlyParticipating: getInput(INPUTS.filterOnlyParticipating, INPUT_TYPE.boolean, false),
         filterOnlyUnread: getInput(INPUTS.filterOnlyUnread, INPUT_TYPE.boolean, false),
+        markAsRead: getInput(INPUTS.markAsRead, INPUT_TYPE.boolean, false),
         sortOldestFirst: getInput(INPUTS.sortOldestFirst, INPUT_TYPE.boolean, false),
         timezone: getInput(INPUTS.timezone, INPUT_TYPE.string, false),
         dateFormat: getInput(INPUTS.dateFormat, INPUT_TYPE.string, false),
-        rollupNotifications: getInput(INPUTS.rollupNotifications, INPUT_TYPE.boolean, false),
         paginateAll: getInput(INPUTS.paginateAll, INPUT_TYPE.boolean, false),
-        // TODO: When supported in API
-        markAsRead: getInput(INPUTS.markAsRead, INPUT_TYPE.boolean, false),
+        rollupNotifications: getInput(INPUTS.rollupNotifications, INPUT_TYPE.boolean, false),
     };
 }
 exports["default"] = getInputs;

@@ -67,6 +67,7 @@ function mockGetOctokit(
   notifications?: Endpoints["GET /notifications"]["response"]["data"]
 ) {
   const octokit = {
+    request: sinon.stub().resolves((arg) => arg),
     rest: {
       activity: {
         listNotificationsForAuthenticatedUser: sinon
