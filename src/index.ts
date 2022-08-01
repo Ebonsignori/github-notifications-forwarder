@@ -168,12 +168,13 @@ async function run(
                 )}\subject.url request: ${JSON.stringify(notificationSubject.data, null, 2)}`
               );
             }
-          } catch (error) {
+          } catch (error: any) {
             core.warning(
               `Unable to fetch URL for notification\nid :${
                 notification.id
               }\nsubject:${JSON.stringify(notification.subject, null, 2)}`
             );
+            core.info(error.message);
           }
           return {
             ...notification,

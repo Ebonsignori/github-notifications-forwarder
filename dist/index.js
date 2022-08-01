@@ -158,6 +158,7 @@ function run(getCore, getOctokit, getSlack) {
                 }
                 catch (error) {
                     core.warning(`Unable to fetch URL for notification\nid :${notification.id}\nsubject:${JSON.stringify(notification.subject, null, 2)}`);
+                    core.info(error.message);
                 }
                 return Object.assign(Object.assign({}, notification), { notification_html_url });
             })));
