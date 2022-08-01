@@ -28,7 +28,6 @@ jobs:
           LAST_MESSAGE=$(git log -1 HEAD --pretty=format:%s)
           git reset --soft HEAD~1
 
-          npm run build 
           npm run package
           git add --all
 

@@ -143,6 +143,10 @@ function run(getCore, getOctokit, getSlack) {
             if (!notifications.length) {
                 return core.info(`No new notifications since last run after running through all filters: ${displayFilters(inputs)}`);
             }
+            // Default return is DESC, we want ASC to show oldest first
+            if (inputs.sortOldestFirst) {
+                notifications = notifications.reverse();
+            }
             // Send Slack Message
             core.info("Forwarding notifications to Slack...");
             yield (0, send_to_slack_1.default)(core, slack, inputs, notifications);
@@ -198,9 +202,12 @@ var INPUTS;
     INPUTS["filterOnlyParticipating"] = "filter-only-participating";
     INPUTS["filterOnlyUnread"] = "filter-only-unread";
     INPUTS["rollupNotifications"] = "rollup-notifications";
-    INPUTS["markAsRead"] = "mark-as-read";
-    INPUTS["paginateAll"] = "paginate-all";
+    INPUTS["sortOldestFirst"] = "sort-oldest-first";
     INPUTS["timezone"] = "timezone";
+    INPUTS["dateFormat"] = "date-format";
+    INPUTS["paginateAll"] = "paginate-all";
+    // TODO: When supported in API
+    INPUTS["markAsRead"] = "mark-as-read";
 })(INPUTS = exports.INPUTS || (exports.INPUTS = {}));
 var REASONS;
 (function (REASONS) {
@@ -295,10 +302,13 @@ function getInputs(core) {
         filterExcludeRepositories: getInput(INPUTS.filterExcludeRepositories, INPUT_TYPE.repositoryList, false),
         filterOnlyParticipating: getInput(INPUTS.filterOnlyParticipating, INPUT_TYPE.boolean, false),
         filterOnlyUnread: getInput(INPUTS.filterOnlyUnread, INPUT_TYPE.boolean, false),
-        rollupNotifications: getInput(INPUTS.rollupNotifications, INPUT_TYPE.boolean, false),
-        markAsRead: getInput(INPUTS.markAsRead, INPUT_TYPE.boolean, false),
-        paginateAll: getInput(INPUTS.paginateAll, INPUT_TYPE.boolean, false),
+        sortOldestFirst: getInput(INPUTS.sortOldestFirst, INPUT_TYPE.boolean, false),
         timezone: getInput(INPUTS.timezone, INPUT_TYPE.string, false),
+        dateFormat: getInput(INPUTS.dateFormat, INPUT_TYPE.string, false),
+        rollupNotifications: getInput(INPUTS.rollupNotifications, INPUT_TYPE.boolean, false),
+        paginateAll: getInput(INPUTS.paginateAll, INPUT_TYPE.boolean, false),
+        // TODO: When supported in API
+        markAsRead: getInput(INPUTS.markAsRead, INPUT_TYPE.boolean, false),
     };
 }
 exports["default"] = getInputs;
@@ -331,10 +341,10 @@ const utc_js_1 = __importDefault(__nccwpck_require__(4359));
 dayjs_1.default.extend(utc_js_1.default);
 dayjs_1.default.extend(timezone_js_1.default);
 function renderNotificationMessage(inputs, notification) {
-    // Version with link to repo
-    // return `<${notification.repository.html_url}|${notification.repository.full_name}>\n<${notification.url}|${notification.subject.title}>`;
-    const notificationDate = (0, dayjs_1.default)(notification.updated_at).tz(inputs.timezone).format("M/D HH:mm");
-    return `*${notification.repository.full_name}* (${notificationDate})\n<${notification.url}|${notification.subject.title}>`;
+    const notificationDate = (0, dayjs_1.default)(notification.updated_at)
+        .tz(inputs.timezone)
+        .format(inputs.dateFormat);
+    return `*${notification.repository.full_name}* _${notificationDate}_\n<${notification.url}|${notification.subject.title}>`;
 }
 /**
  * Renders notifications for Slack and then sends them
