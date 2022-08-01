@@ -144,6 +144,7 @@ function run(getCore, getOctokit, getSlack) {
             if (!notifications.length) {
                 return core.info(`No new notifications since last run after running through all filters: ${displayFilters(inputs)}`);
             }
+            // Get the `html_url` for each notification and add it as `notification_html_url`
             notifications = yield Promise.all(notifications.map((notification) => __awaiter(this, void 0, void 0, function* () {
                 var _a;
                 let notification_html_url;
@@ -152,11 +153,8 @@ function run(getCore, getOctokit, getSlack) {
                     notification_html_url = (_a = notificationSubject === null || notificationSubject === void 0 ? void 0 : notificationSubject.data) === null || _a === void 0 ? void 0 : _a.html_url;
                 }
                 catch (error) {
-                    core.warning(`Unable to fetch URL fo notification\mid:${notification.id}\nsubject:${JSON.stringify(notification.subject, null, 2)}`);
+                    core.warning(`Unable to fetch URL for notification\nid:${notification.id}\nsubject:${JSON.stringify(notification.subject, null, 2)}`);
                 }
-                console.log("Item:");
-                console.log(notification.subject);
-                console.log(notification_html_url);
                 return Object.assign(Object.assign({}, notification), { notification_html_url });
             })));
             // Default return is DESC, we want ASC to show oldest first

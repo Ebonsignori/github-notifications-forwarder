@@ -144,6 +144,7 @@ async function run(
       );
     }
 
+    // Get the `html_url` for each notification and add it as `notification_html_url`
     notifications = await Promise.all(notifications.map(
       async (
         notification: Endpoints["GET /notifications"]["response"]["data"][0]
@@ -156,14 +157,11 @@ async function run(
           notification_html_url = notificationSubject?.data?.html_url;
         } catch (error) {
           core.warning(
-            `Unable to fetch URL fo notification\mid:${
+            `Unable to fetch URL for notification\nid:${
               notification.id
             }\nsubject:${JSON.stringify(notification.subject, null, 2)}`
           );
         }
-        console.log("Item:");
-        console.log(notification.subject);
-        console.log(notification_html_url);
         return {
           ...notification,
           notification_html_url,

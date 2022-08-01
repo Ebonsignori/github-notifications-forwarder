@@ -6,7 +6,7 @@ Requires access to a Slack Bot with proper `write` permissions to the Slack chan
 
 Forwarded notifications can be filtered by their [reason](#reason-filtering), [repository](#repository-filtering), [participation](#filter-only-participating), or [read status](#filter-only-unread).
 
-After a notification is forwarded, it can be [marked as read](#mark-as-read)
+After a notification is forwarded, it can be [marked as read](#mark-as-read).
 
 ## TOC
 

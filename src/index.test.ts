@@ -46,20 +46,20 @@ function setMockEnv(envMap: { [key: string]: any }) {
 }
 
 function mockGetCore() {
-  const core = {
-    info: sinon.stub().callsFake((args) => console.log(args)),
-    error: sinon.stub().callsFake((args) => console.log(args)),
-    getInput: CoreLibrary.getInput,
-    getBooleanInput: CoreLibrary.getBooleanInput,
-    setFailed: sinon.stub().callsFake((args) => console.log(args)),
-  };
   // const core = {
-    // info: sinon.stub().callsFake((args) => {}),
-    // error: sinon.stub().callsFake((args) => {}),
+    // info: sinon.stub().callsFake((args) => console.log(args)),
+    // error: sinon.stub().callsFake((args) => console.log(args)),
     // getInput: CoreLibrary.getInput,
     // getBooleanInput: CoreLibrary.getBooleanInput,
-    // setFailed: sinon.stub().callsFake((args) => {}),
+    // setFailed: sinon.stub().callsFake((args) => console.log(args)),
   // };
+  const core = {
+    info: sinon.stub().callsFake((args) => {}),
+    error: sinon.stub().callsFake((args) => {}),
+    getInput: CoreLibrary.getInput,
+    getBooleanInput: CoreLibrary.getBooleanInput,
+    setFailed: sinon.stub().callsFake((args) => {}),
+  };
   return () => core;
 }
 
@@ -67,7 +67,7 @@ function mockGetOctokit(
   notifications?: Endpoints["GET /notifications"]["response"]["data"]
 ) {
   const octokit = {
-    request: sinon.stub().resolves((arg) => ({ data: { html_url: `<${arg} html_url>` } })),
+    request: sinon.stub().callsFake(async (arg) => ({ data: { html_url: `<${arg} html_url>` } })),
     rest: {
       activity: {
         listNotificationsForAuthenticatedUser: sinon
@@ -99,6 +99,7 @@ function createMockNotification(title: string, repository: string, reason: REASO
     reason: reason,
     subject: {
       title: title,
+      url: `<subject url for - "${title}">`,
     },
     repository: {
       full_name: repository,
@@ -238,6 +239,9 @@ test("sends slack message of notifications using defaults", async (t) => {
   t.false(octokit.rest.activity.listNotificationsForAuthenticatedUser.getCall(0).args[0].participating);
   t.is(slack.chat.postMessage.callCount, 1);
   t.true(slack.chat.postMessage.getCall(0).args[0].text.includes("<A notification>"));
+
+  // Valid `html_url` fetched via octokit.request()
+  t.true(slack.chat.postMessage.getCall(0).args[0].text.includes(`<<subject url for - "<A notification>"> html_url>`));
 });
 
 test("marks sent notifications as read when mark-as-read is true", async (t) => {
