@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v3
         with:
           node-version: "lts/*"
@@ -20,8 +22,8 @@ jobs:
       - run: npm install --no-save semantic-release-plugin-github-breaking-version-tag
       # configure git to push commit back to release branch with build
       - run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          git config user.name "Evan Bonsignori"
+          git config user.email "evanabonsignori@gmail.com"
 
           LAST_MESSAGE=$(git log -1 HEAD --pretty=format:%s)
           git reset --soft HEAD~1
