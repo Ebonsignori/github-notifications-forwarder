@@ -1,10 +1,19 @@
 import * as CoreLibrary from "@actions/core";
 import { Endpoints } from "@octokit/types";
 import { WebClient } from "@slack/web-api";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone.js";
+import utc from "dayjs/plugin/utc.js";
 
-function renderNotificationMessage(notification: Endpoints["GET /notifications"]["response"]["data"][0]) {
+// Required for timezone
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+function renderNotificationMessage(inputs: { timezone: string }, notification: Endpoints["GET /notifications"]["response"]["data"][0]) {
+  // Version with link to repo
   // return `<${notification.repository.html_url}|${notification.repository.full_name}>\n<${notification.url}|${notification.subject.title}>`;
-  return `*${notification.repository.full_name}*\n<${notification.url}|${notification.subject.title}>`;
+  const notificationDate = dayjs(notification.updated_at).tz(inputs.timezone).format("M/D HH:mm")
+  return `*${notification.repository.full_name}* (${notificationDate})\n<${notification.url}|${notification.subject.title}>`;
 }
 
 /**
