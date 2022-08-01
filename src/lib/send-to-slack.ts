@@ -22,7 +22,7 @@ function renderNotificationMessage(inputs: { timezone: string }, notification: E
 async function sendToSlack(
   core: typeof CoreLibrary,
   slack: WebClient,
-  inputs: { rollupNotifications: boolean; destination: string },
+  inputs: { rollupNotifications: boolean; destination: string, timezone: string },
   notifications: Endpoints["GET /notifications"]["response"]["data"]
 ) {
   // On rollup, send all notifications in one message body
@@ -42,12 +42,12 @@ async function sendToSlack(
       if (textBody) {
         textBody += "\n\n";
       }
-      textBody += renderNotificationMessage(notification);
+      textBody += renderNotificationMessage(inputs, notification);
       blocks.push({
         type: "section",
         text: {
           type: "mrkdwn",
-          text: renderNotificationMessage(notification),
+          text: renderNotificationMessage(inputs, notification),
         },
       })
     }
@@ -70,7 +70,7 @@ async function sendToSlack(
 
   // If not rollup, send each notification individually
   for (const notification of notifications) {
-    const text = renderNotificationMessage(notification);
+    const text = renderNotificationMessage(inputs, notification);
     // Not promisified for rate limitting, wait 2 seconds between each message
     try {
       await slack.chat.postMessage({
