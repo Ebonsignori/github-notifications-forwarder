@@ -4,7 +4,7 @@ This action is intended to be run from a scheduled GitHub action. It checks all 
 
 Requires access to a Slack Bot with proper `write` permissions to the Slack channel or DM, and a user-generated legacy [personal access token](https://github.com/settings/tokens) with the `notifications` scope enabled.
 
-Forwarded notifications can be filtered by their [reason](#reason-filtering), [repository](#repository-filtering), [participation](#filter-only-participating), or [read status](#filter-only-read).
+Forwarded notifications can be filtered by their [reason](#reason-filtering), [repository](#repository-filtering), [participation](#filter-only-participating), or [read status](#filter-only-unread).
 
 ## TOC
 
@@ -24,7 +24,7 @@ Forwarded notifications can be filtered by their [reason](#reason-filtering), [r
     - [`filter-exclude-repositories`](#filter-exclude-repositories)
   - [Other Filtering](#other-filtering)
     - [`filter-only-participating`](#filter-only-participating)
-    - [`filter-only-read`](#filter-only-read)
+    - [`filter-only-unread`](#filter-only-unread)
   - [Optional Configuration](#optional-configuration)
     - [`rollup-notifications`](#rollup-notifications)
     - [`paginate-all`](#paginate-all)
@@ -134,9 +134,9 @@ Set to `"true"` to only forward notifications in which the user is directly part
 
 Defaults to `"false"`
 
-#### `filter-only-read`
+#### `filter-only-unread`
 
-Set to `"false"` to also include notifications already marked as "read"
+Set to `"false"` to include notifications marked as "read"
 
 Defaults to `"true"`
 
