@@ -154,10 +154,10 @@ function displayFilters(inputs) {
   return `
   <filter-only-unread>: ${inputs.filterOnlyUnread}
   <filter-only-participating>: ${inputs.filterOnlyParticipating}
-  <filter-include-reasons>: ${inputs.filterIncludeReasons.join(", ")}
-  <filter-exclude-reasons>: ${inputs.filterExcludeReasons.join(", ")}
-  <filter-include-repositories>: ${inputs.filterIncludeRepositories.join(", ")}
-  <filter-exclude-repositories>: ${inputs.filterExcludeRepositories.join(", ")}
+  <filter-include-reasons>: ${inputs.filterIncludeReasons?.join(", ") || "[]"}
+  <filter-exclude-reasons>: ${inputs.filterExcludeReasons?.join(", ") || "[]"}
+  <filter-include-repositories>: ${inputs.filterIncludeRepositories?.join(", ") || "[]"}
+  <filter-exclude-repositories>: ${inputs.filterExcludeRepositories?.join(", ") || "[]"}
   `
 }
 
