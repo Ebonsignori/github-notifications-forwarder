@@ -48,7 +48,7 @@ inputs:
   date-format:
     description: "Customize dates in Slack messages using dayjs Date format, https://day.js.org/docs/en/display/format"
     required: false
-    default: "M/D h:ma"
+    default: "M/D h:mm A"
   paginate-all:
     description: 'By default, action checks the last 100 notifications since the last action-schedule was run. Set to "true" to check all notifications'
     required: false

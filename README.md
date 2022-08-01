@@ -160,7 +160,7 @@ Timezone you're located in for displaying dates and times in Slack messages.
 
 Customize dates in Slack messages using [dayjs Date format](https://day.js.org/docs/en/display/format)
 
-Defaults to `"M/D h:ma"`
+Defaults to `"M/DD h:mm A"`
 
 #### `rollup-notifications`
 
