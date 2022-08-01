@@ -18,14 +18,15 @@ jobs:
           cache: npm
       # install semantic-release plugins
       - run: npm install --no-save semantic-release-plugin-github-breaking-version-tag
-      # configure git to push commit back to release branch
+      # configure git to push commit back to release branch with build
       - run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
           npm run build 
           npm run package
+          LAST_MESSAGE=$(git log -1 HEAD --pretty=format:%s)
           git add --all
-          git diff --quiet && git diff --staged --quiet || git commit -a --reuse-message=HEAD && git push
+          git diff --quiet && git diff --staged --quiet || git reset --soft HEAD~1 && git add --all && git commit -a -m $LAST_MESSAGE && git push
       # do the release
       - run: npx semantic-release --debug
         env:

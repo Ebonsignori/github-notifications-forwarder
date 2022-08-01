@@ -155,13 +155,14 @@ function run(getCore, getOctokit, getSlack) {
     });
 }
 function displayFilters(inputs) {
+    var _a, _b, _c, _d;
     return `
   <filter-only-unread>: ${inputs.filterOnlyUnread}
   <filter-only-participating>: ${inputs.filterOnlyParticipating}
-  <filter-include-reasons>: ${inputs.filterIncludeReasons.join(", ")}
-  <filter-exclude-reasons>: ${inputs.filterExcludeReasons.join(", ")}
-  <filter-include-repositories>: ${inputs.filterIncludeRepositories.join(", ")}
-  <filter-exclude-repositories>: ${inputs.filterExcludeRepositories.join(", ")}
+  <filter-include-reasons>: ${((_a = inputs.filterIncludeReasons) === null || _a === void 0 ? void 0 : _a.join(", ")) || "[]"}
+  <filter-exclude-reasons>: ${((_b = inputs.filterExcludeReasons) === null || _b === void 0 ? void 0 : _b.join(", ")) || "[]"}
+  <filter-include-repositories>: ${((_c = inputs.filterIncludeRepositories) === null || _c === void 0 ? void 0 : _c.join(", ")) || "[]"}
+  <filter-exclude-repositories>: ${((_d = inputs.filterExcludeRepositories) === null || _d === void 0 ? void 0 : _d.join(", ")) || "[]"}
   `;
 }
 // export `run` function for testing
