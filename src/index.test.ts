@@ -25,6 +25,7 @@ const defaultEnv = {
   "date-format": "M/D h:ma",
   "rollup-notifications": "true",
   "paginate-all": "false",
+  "debug-logging": "false",
 };
 
 function setMockEnv(envMap: { [key: string]: any }) {
@@ -413,4 +414,5 @@ test("filters on filter-exclude-repositories", async (t) => {
 });
 
 // TODO: Test rollup-notifications
-// TODO: test timezone and date-format
+// TODO: Test timezone and date-format
+// TODO: Test html URLs

@@ -49,6 +49,7 @@ const plugin_throttling_1 = __nccwpck_require__(9968);
 const web_api_1 = __nccwpck_require__(431);
 const get_inputs_1 = __importDefault(__nccwpck_require__(9054));
 const send_to_slack_1 = __importDefault(__nccwpck_require__(670));
+const determine_url_1 = __importDefault(__nccwpck_require__(3036));
 const ExtendedOctokit = octokit_1.Octokit.plugin(plugin_throttling_1.throttling);
 // Call `run()` directly if this file is the entry point
 if (require.main === require.cache[eval('__filename')]) {
@@ -127,6 +128,12 @@ function run(getCore, getOctokit, getSlack) {
             }
             let notifications = notificationsFetch;
             core.info(`${notifications.length} notifications fetched before filtering.`);
+            if (inputs.debugLogging) {
+                core.info("Every fetched notification: ");
+                for (const notification of notifications) {
+                    core.info(JSON.stringify(notification, null, 2));
+                }
+            }
             // Filter notifications to include/exclude user defined "reason"s
             if (inputs.filterIncludeReasons.length) {
                 notifications = notifications.filter((notification) => inputs.filterIncludeReasons.includes(notification.reason.toLowerCase()));
@@ -146,21 +153,7 @@ function run(getCore, getOctokit, getSlack) {
             }
             // Get the `html_url` for each notification and add it as `notification_html_url`
             notifications = yield Promise.all(notifications.map((notification) => __awaiter(this, void 0, void 0, function* () {
-                var _a;
-                let notification_html_url;
-                try {
-                    const notificationSubject = yield octokit.request(notification.subject.url);
-                    notification_html_url = (_a = notificationSubject === null || notificationSubject === void 0 ? void 0 : notificationSubject.data) === null || _a === void 0 ? void 0 : _a.html_url;
-                    // If there still isn't an html_url, it lives on another key
-                    if (!notification_html_url) {
-                        core.warning(`Unable to find URL from linked api url for notification\nid :${notification.id}\nsubject:${JSON.stringify(notification.subject, null, 2)}\subject.url request: ${JSON.stringify(notificationSubject.data, null, 2)}`);
-                    }
-                }
-                catch (error) {
-                    core.warning(`Unable to fetch URL for notification\nid :${notification.id}\nsubject:${JSON.stringify(notification.subject, null, 2)}`);
-                    core.info(error.message);
-                }
-                return Object.assign(Object.assign({}, notification), { notification_html_url });
+                return Object.assign(Object.assign({}, notification), { notification_html_url: yield (0, determine_url_1.default)(core, octokit, inputs, notification) });
             })));
             // Default return is DESC, we want ASC to show oldest first
             if (inputs.sortOldestFirst) {
@@ -172,7 +165,7 @@ function run(getCore, getOctokit, getSlack) {
             core.info("Notification message(s) sent!");
             // Mark notifications as read if configured to
             if (inputs.markAsRead) {
-                core.info("Marking ${notifications.length} as read...");
+                core.info(`Marking ${notifications.length} as read...`);
                 for (const notification of notifications) {
                     yield octokit.rest.activity.markThreadAsRead({
                         thread_id: notification.id,
@@ -211,6 +204,54 @@ exports["default"] = run;
 
 /***/ }),
 
+/***/ 3036:
+/***/ (function(__unused_webpack_module, exports) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const BASE = `https://github.com`;
+function determineUrl(core, octokit, inputs, notification) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function* () {
+        if (notification.subject.type === "Discussion") {
+            return `${BASE}/${notification.repository.full_name}/discussions?${encodeURI(notification.subject.title)}`;
+        }
+        // If no hard-coded method for fetching URL is defined, try .request to get the `html_url`
+        let notificationHtmlURL;
+        if (notification.subject.url) {
+            try {
+                const notificationSubject = yield octokit.request(notification.subject.url);
+                notificationHtmlURL = (_a = notificationSubject === null || notificationSubject === void 0 ? void 0 : notificationSubject.data) === null || _a === void 0 ? void 0 : _a.html_url;
+                // If there still isn't an html_url, it lives on another key
+                if (inputs.debugLogging && !notificationHtmlURL) {
+                    core.warning(`Unable to find URL from linked api url for notification\nid :${notification.id}\nsubject:${JSON.stringify(notification.subject, null, 2)}\subject.url request: ${JSON.stringify(notificationSubject.data, null, 2)}`);
+                }
+            }
+            catch (error) {
+                if (inputs.debugLogging) {
+                    core.warning(`Unable to fetch URL for notification\nid :${notification.id}\nsubject:${JSON.stringify(notification.subject, null, 2)}`);
+                    core.info(error.message);
+                }
+            }
+        }
+        return notificationHtmlURL;
+    });
+}
+exports["default"] = determineUrl;
+
+
+/***/ }),
+
 /***/ 9054:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -243,6 +284,7 @@ var INPUTS;
     INPUTS["dateFormat"] = "date-format";
     INPUTS["paginateAll"] = "paginate-all";
     INPUTS["rollupNotifications"] = "rollup-notifications";
+    INPUTS["debugLogging"] = "debug-logging";
 })(INPUTS = exports.INPUTS || (exports.INPUTS = {}));
 var REASONS;
 (function (REASONS) {
@@ -343,6 +385,7 @@ function getInputs(core) {
         dateFormat: getInput(INPUTS.dateFormat, INPUT_TYPE.string, false),
         paginateAll: getInput(INPUTS.paginateAll, INPUT_TYPE.boolean, false),
         rollupNotifications: getInput(INPUTS.rollupNotifications, INPUT_TYPE.boolean, false),
+        debugLogging: getInput(INPUTS.debugLogging, INPUT_TYPE.boolean, false),
     };
 }
 exports["default"] = getInputs;

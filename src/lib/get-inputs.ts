@@ -24,6 +24,7 @@ export enum INPUTS {
   dateFormat = "date-format",
   paginateAll = "paginate-all",
   rollupNotifications = "rollup-notifications",
+  debugLogging = "debug-logging",
 }
 
 export enum REASONS {
@@ -183,6 +184,11 @@ function getInputs(core: typeof CoreLibrary) {
     paginateAll: getInput(INPUTS.paginateAll, INPUT_TYPE.boolean, false),
     rollupNotifications: getInput(
       INPUTS.rollupNotifications,
+      INPUT_TYPE.boolean,
+      false
+    ),
+    debugLogging: getInput(
+      INPUTS.debugLogging,
       INPUT_TYPE.boolean,
       false
     ),

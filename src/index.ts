@@ -7,6 +7,7 @@ import { WebClient } from "@slack/web-api";
 
 import getInputs from "./lib/get-inputs";
 import sendToSlack from "./lib/send-to-slack";
+import determineUrl from "./lib/determine-url";
 
 const ExtendedOctokit = Octokit.plugin(throttling);
 
@@ -104,6 +105,13 @@ async function run(
       `${notifications.length} notifications fetched before filtering.`
     );
 
+    if (inputs.debugLogging) {
+      core.info("Every fetched notification: ");
+      for (const notification of notifications) {
+        core.info(JSON.stringify(notification, null, 2))
+      }
+    }
+
     // Filter notifications to include/exclude user defined "reason"s
     if (inputs.filterIncludeReasons.length) {
       notifications = notifications.filter((notification) =>
@@ -149,37 +157,11 @@ async function run(
       notifications.map(
         async (
           notification: Endpoints["GET /notifications"]["response"]["data"][0]
-        ) => {
-          let notification_html_url;
-          try {
-            const notificationSubject = await octokit.request(
-              notification.subject.url
-            );
-            notification_html_url = notificationSubject?.data?.html_url;
-            // If there still isn't an html_url, it lives on another key
-            if (!notification_html_url) {
-              core.warning(
-                `Unable to find URL from linked api url for notification\nid :${
-                  notification.id
-                }\nsubject:${JSON.stringify(
-                  notification.subject,
-                  null,
-                  2
-                )}\subject.url request: ${JSON.stringify(notificationSubject.data, null, 2)}`
-              );
-            }
-          } catch (error: any) {
-            core.warning(
-              `Unable to fetch URL for notification\nid :${
-                notification.id
-              }\nsubject:${JSON.stringify(notification.subject, null, 2)}`
-            );
-            core.info(error.message);
-          }
+        ) =>  {
           return {
             ...notification,
-            notification_html_url,
-          };
+            notification_html_url: await determineUrl(core, octokit, inputs, notification)
+          }
         }
       )
     );
@@ -197,7 +179,7 @@ async function run(
 
     // Mark notifications as read if configured to
     if (inputs.markAsRead) {
-      core.info("Marking ${notifications.length} as read...");
+      core.info(`Marking ${notifications.length} as read...`);
       for (const notification of notifications) {
         await octokit.rest.activity.markThreadAsRead({
           thread_id: notification.id,

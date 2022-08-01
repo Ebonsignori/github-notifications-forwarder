@@ -61,6 +61,10 @@ inputs:
     description: 'Set to "false" to send Slack messages for each notification rather than a single rollup of all notifications into one message.'
     required: false
     default: "true"
+  debug-logging:
+    description: "Set to true to enable debug logging"
+    required: false
+    default: "false"
 
 runs:
   using: node16
