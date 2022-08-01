@@ -201,13 +201,13 @@ function displayFilters(inputs) {
   return `
   <filter-only-unread>: ${inputs.filterOnlyUnread}
   <filter-only-participating>: ${inputs.filterOnlyParticipating}
-  <filter-include-reasons>: ${inputs.filterIncludeReasons?.join(", ") || "[]"}
-  <filter-exclude-reasons>: ${inputs.filterExcludeReasons?.join(", ") || "[]"}
+  <filter-include-reasons>: ${inputs.filterIncludeReasons.length ? inputs.filterIncludeReasons.join(", ") : "[]"}
+  <filter-exclude-reasons>: ${inputs.filterExcludeReasons.length ? inputs.filterExcludeReasons.join(", ") : "[]"}
   <filter-include-repositories>: ${
-    inputs.filterIncludeRepositories?.join(", ") || "[]"
+    inputs.filterIncludeRepositories.length ? inputs.filterIncludeRepositories.join(", ") : "[]"
   }
   <filter-exclude-repositories>: ${
-    inputs.filterExcludeRepositories?.join(", ") || "[]"
+    inputs.filterExcludeRepositories.length ? inputs.filterExcludeRepositories.join(", ") : "[]"
   }
   `;
 }

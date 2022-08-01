@@ -1,0 +1,3 @@
+# IDE Search ignore list
+dist/
+build/

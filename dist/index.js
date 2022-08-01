@@ -183,14 +183,13 @@ function run(getCore, getOctokit, getSlack) {
     });
 }
 function displayFilters(inputs) {
-    var _a, _b, _c, _d;
     return `
   <filter-only-unread>: ${inputs.filterOnlyUnread}
   <filter-only-participating>: ${inputs.filterOnlyParticipating}
-  <filter-include-reasons>: ${((_a = inputs.filterIncludeReasons) === null || _a === void 0 ? void 0 : _a.join(", ")) || "[]"}
-  <filter-exclude-reasons>: ${((_b = inputs.filterExcludeReasons) === null || _b === void 0 ? void 0 : _b.join(", ")) || "[]"}
-  <filter-include-repositories>: ${((_c = inputs.filterIncludeRepositories) === null || _c === void 0 ? void 0 : _c.join(", ")) || "[]"}
-  <filter-exclude-repositories>: ${((_d = inputs.filterExcludeRepositories) === null || _d === void 0 ? void 0 : _d.join(", ")) || "[]"}
+  <filter-include-reasons>: ${inputs.filterIncludeReasons.length ? inputs.filterIncludeReasons.join(", ") : "[]"}
+  <filter-exclude-reasons>: ${inputs.filterExcludeReasons.length ? inputs.filterExcludeReasons.join(", ") : "[]"}
+  <filter-include-repositories>: ${inputs.filterIncludeRepositories.length ? inputs.filterIncludeRepositories.join(", ") : "[]"}
+  <filter-exclude-repositories>: ${inputs.filterExcludeRepositories.length ? inputs.filterExcludeRepositories.join(", ") : "[]"}
   `;
 }
 // export `run` function for testing
@@ -274,7 +273,7 @@ function getInputs(core) {
             type === INPUT_TYPE.repositoryList) {
             input = core.getInput(name, { required });
             if (input) {
-                input = input.split(",").map((opt) => opt.trim().toLowerCase());
+                input = input.split(",").map((opt) => opt.trim().toLowerCase()).filter(x => x);
                 // Validate
                 if (required && !input) {
                     throw new Error(`Input <${name}> is a required comma-separated list.`);

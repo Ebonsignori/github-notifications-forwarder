@@ -88,7 +88,7 @@ function getInputs(core: typeof CoreLibrary) {
     ) {
       input = core.getInput(name, { required });
       if (input) {
-        input = input.split(",").map((opt: string) => opt.trim().toLowerCase());
+        input = input.split(",").map((opt: string) => opt.trim().toLowerCase()).filter(x => x);
         // Validate
         if (required && !input) {
           throw new Error(
