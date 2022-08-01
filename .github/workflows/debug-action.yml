@@ -7,7 +7,6 @@ jobs:
   debug-action:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       - name: Debug Run
         uses: ./
         with:
