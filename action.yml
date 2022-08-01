@@ -37,6 +37,22 @@ inputs:
     description: 'Set to "false" to include notifications marked as "read"'
     required: false
     default: "true"
+  sort-oldest-first:
+    required: false
+    description: "Sort Slack message(s) by oldest notifications first."
+    default: "true"
+  timezone:
+    description: "Timezone you're in. (Action runner timezone must be UTC)"
+    required: false
+    default: "UTC"
+  date-format:
+    description: "Customize dates in Slack messages using dayjs Date format, https://day.js.org/docs/en/display/format"
+    required: false
+    default: "M/D h:ma"
+  paginate-all:
+    description: 'By default, action checks the last 100 notifications since the last action-schedule was run. Set to "true" to check all notifications'
+    required: false
+    default: "false"
   rollup-notifications:
     description: 'Set to "false" to send Slack messages for each notification rather than a single rollup of all notifications into one message.'
     required: false
@@ -45,14 +61,6 @@ inputs:
     description: 'Set to "true" to mark forwarded notifications as "read"'
     required: false
     default: "false"
-  paginate-all:
-    description: 'By default, action checks the last 100 notifications since the last action-schedule was run. Set to "true" to check all notifications'
-    required: false
-    default: "false"
-  timezone:
-    description: "Timezone you're in. (Action runner timezone must be UTC)"
-    required: false
-    default: "UTC"
 
 runs:
   using: node16

@@ -139,6 +139,11 @@ async function run(
       );
     }
 
+    // Default return is DESC, we want ASC to show oldest first
+    if (inputs.sortOldestFirst) {
+      notifications = notifications.reverse();
+    }
+
     // Send Slack Message
     core.info("Forwarding notifications to Slack...");
     await sendToSlack(core, slack, inputs, notifications);

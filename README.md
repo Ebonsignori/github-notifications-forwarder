@@ -26,9 +26,11 @@ Forwarded notifications can be filtered by their [reason](#reason-filtering), [r
     - [`filter-only-participating`](#filter-only-participating)
     - [`filter-only-unread`](#filter-only-unread)
   - [Optional Configuration](#optional-configuration)
+    - [`sort-oldest-first`](#sort-oldest-first)
+    - [`timezone`](#timezone)
+    - [`date-format`](#date-format)
     - [`rollup-notifications`](#rollup-notifications)
     - [`paginate-all`](#paginate-all)
-    - [`timezone`](#timezone)
 
 ## Example Usage
 
@@ -142,22 +144,34 @@ Defaults to `"true"`
 
 ### Optional Configuration
 
-#### `rollup-notifications`
+#### `sort-oldest-first`
 
-By default notifications are sent as a single Slack message.
+Sort Slack message(s) by oldest notifications first.
 
-Set to "false" to send a new Slack messages for each notification (may run into rate limiting problems)
-
-Defaults to "true"
-
-#### `paginate-all`
-
-By default, the action checks the last 100 notifications since the last `action-schedule` was fired. Set to "true" to check all notifications at the cost of a bigger fetch.
-
-Useful if you recieve a lot of notifications and not all are being forwarded to you.
+Defaults to `"true"`
 
 #### `timezone`
 
 Timezone you're located in for displaying dates and times in Slack messages.
 
 **Note** You can set this for display, but the timezone of the action runner should not be changed from its default "UTC"
+
+#### `date-format`
+
+Customize dates in Slack messages using [dayjs Date format](https://day.js.org/docs/en/display/format)
+
+Defaults to `"M/D h:ma"`
+
+#### `rollup-notifications`
+
+By default notifications are sent as a single Slack message.
+
+Set to "false" to send a new Slack messages for each notification (may run into rate limiting problems)
+
+Defaults to `"true"`
+
+#### `paginate-all`
+
+By default, the action checks the last 100 notifications since the last `action-schedule` was fired. Set to "true" to check all notifications at the cost of a bigger fetch.
+
+Useful if you recieve a lot of notifications and not all are being forwarded to you.

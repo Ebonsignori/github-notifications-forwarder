@@ -20,9 +20,11 @@ const defaultEnv = {
   "filter-only-participating": "false",
   "filter-only-unread": "true",
   "rollup-notifications": "true",
-  "mark-as-read": "false",
-  "paginate-all": "false",
+  "sort-oldest-first": "true",
   timezone: "UTC",
+  "date-format": "M/D h:ma",
+  "paginate-all": "false",
+  "mark-as-read": "false",
 };
 
 function setMockEnv(envMap: { [key: string]: any }) {
@@ -89,6 +91,7 @@ function mockGetSlack() {
 function createMockNotification(title: string, repository: string, reason: REASONS): Endpoints["GET /notifications"]["response"]["data"][0] {
   const notification = {
     id: `<id for - "${title}">`,
+    updated_at: new Date().toISOString(),
     url: `<url for - "${title}">`,
     reason: reason,
     subject: {

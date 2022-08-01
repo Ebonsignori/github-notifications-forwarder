@@ -9,11 +9,14 @@ import utc from "dayjs/plugin/utc.js";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-function renderNotificationMessage(inputs: { timezone: string }, notification: Endpoints["GET /notifications"]["response"]["data"][0]) {
-  // Version with link to repo
-  // return `<${notification.repository.html_url}|${notification.repository.full_name}>\n<${notification.url}|${notification.subject.title}>`;
-  const notificationDate = dayjs(notification.updated_at).tz(inputs.timezone).format("M/D HH:mm")
-  return `*${notification.repository.full_name}* (${notificationDate})\n<${notification.url}|${notification.subject.title}>`;
+function renderNotificationMessage(
+  inputs: { timezone: string; dateFormat: string },
+  notification: Endpoints["GET /notifications"]["response"]["data"][0]
+) {
+  const notificationDate = dayjs(notification.updated_at)
+    .tz(inputs.timezone)
+    .format(inputs.dateFormat);
+  return `*${notification.repository.full_name}* _${notificationDate}_\n<${notification.url}|${notification.subject.title}>`;
 }
 
 /**
@@ -22,7 +25,12 @@ function renderNotificationMessage(inputs: { timezone: string }, notification: E
 async function sendToSlack(
   core: typeof CoreLibrary,
   slack: WebClient,
-  inputs: { rollupNotifications: boolean; destination: string, timezone: string },
+  inputs: {
+    rollupNotifications: boolean;
+    destination: string;
+    timezone: string;
+    dateFormat: string;
+  },
   notifications: Endpoints["GET /notifications"]["response"]["data"]
 ) {
   // On rollup, send all notifications in one message body
@@ -49,7 +57,7 @@ async function sendToSlack(
           type: "mrkdwn",
           text: renderNotificationMessage(inputs, notification),
         },
-      })
+      });
     }
 
     const text = `GitHub Notifications\n\n${textBody}`;
