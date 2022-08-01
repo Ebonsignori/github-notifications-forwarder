@@ -151,9 +151,13 @@ function run(getCore, getOctokit, getSlack) {
                 try {
                     const notificationSubject = yield octokit.request(notification.subject.url);
                     notification_html_url = (_a = notificationSubject === null || notificationSubject === void 0 ? void 0 : notificationSubject.data) === null || _a === void 0 ? void 0 : _a.html_url;
+                    // If there still isn't an html_url, it lives on another key
+                    if (!notification_html_url) {
+                        core.warning(`Unable to find URL from linked api url for notification\nid :${notification.id}\nsubject:${JSON.stringify(notification.subject, null, 2)}\subject.url request: ${JSON.stringify(notificationSubject.data, null, 2)}`);
+                    }
                 }
                 catch (error) {
-                    core.warning(`Unable to fetch URL for notification\nid:${notification.id}\nsubject:${JSON.stringify(notification.subject, null, 2)}`);
+                    core.warning(`Unable to fetch URL for notification\nid :${notification.id}\nsubject:${JSON.stringify(notification.subject, null, 2)}`);
                 }
                 return Object.assign(Object.assign({}, notification), { notification_html_url });
             })));
@@ -186,10 +190,18 @@ function displayFilters(inputs) {
     return `
   <filter-only-unread>: ${inputs.filterOnlyUnread}
   <filter-only-participating>: ${inputs.filterOnlyParticipating}
-  <filter-include-reasons>: ${inputs.filterIncludeReasons.length ? inputs.filterIncludeReasons.join(", ") : "[]"}
-  <filter-exclude-reasons>: ${inputs.filterExcludeReasons.length ? inputs.filterExcludeReasons.join(", ") : "[]"}
-  <filter-include-repositories>: ${inputs.filterIncludeRepositories.length ? inputs.filterIncludeRepositories.join(", ") : "[]"}
-  <filter-exclude-repositories>: ${inputs.filterExcludeRepositories.length ? inputs.filterExcludeRepositories.join(", ") : "[]"}
+  <filter-include-reasons>: ${inputs.filterIncludeReasons.length
+        ? inputs.filterIncludeReasons.join(", ")
+        : "[]"}
+  <filter-exclude-reasons>: ${inputs.filterExcludeReasons.length
+        ? inputs.filterExcludeReasons.join(", ")
+        : "[]"}
+  <filter-include-repositories>: ${inputs.filterIncludeRepositories.length
+        ? inputs.filterIncludeRepositories.join(", ")
+        : "[]"}
+  <filter-exclude-repositories>: ${inputs.filterExcludeRepositories.length
+        ? inputs.filterExcludeRepositories.join(", ")
+        : "[]"}
   `;
 }
 // export `run` function for testing

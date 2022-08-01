@@ -145,29 +145,43 @@ async function run(
     }
 
     // Get the `html_url` for each notification and add it as `notification_html_url`
-    notifications = await Promise.all(notifications.map(
-      async (
-        notification: Endpoints["GET /notifications"]["response"]["data"][0]
-      ) => {
-        let notification_html_url;
-        try {
-          const notificationSubject = await octokit.request(
-            notification.subject.url
-          );
-          notification_html_url = notificationSubject?.data?.html_url;
-        } catch (error) {
-          core.warning(
-            `Unable to fetch URL for notification\nid:${
-              notification.id
-            }\nsubject:${JSON.stringify(notification.subject, null, 2)}`
-          );
+    notifications = await Promise.all(
+      notifications.map(
+        async (
+          notification: Endpoints["GET /notifications"]["response"]["data"][0]
+        ) => {
+          let notification_html_url;
+          try {
+            const notificationSubject = await octokit.request(
+              notification.subject.url
+            );
+            notification_html_url = notificationSubject?.data?.html_url;
+            // If there still isn't an html_url, it lives on another key
+            if (!notification_html_url) {
+              core.warning(
+                `Unable to find URL from linked api url for notification\nid :${
+                  notification.id
+                }\nsubject:${JSON.stringify(
+                  notification.subject,
+                  null,
+                  2
+                )}\subject.url request: ${JSON.stringify(notificationSubject.data, null, 2)}`
+              );
+            }
+          } catch (error) {
+            core.warning(
+              `Unable to fetch URL for notification\nid :${
+                notification.id
+              }\nsubject:${JSON.stringify(notification.subject, null, 2)}`
+            );
+          }
+          return {
+            ...notification,
+            notification_html_url,
+          };
         }
-        return {
-          ...notification,
-          notification_html_url,
-        };
-      }
-    ));
+      )
+    );
 
     // Default return is DESC, we want ASC to show oldest first
     if (inputs.sortOldestFirst) {
@@ -201,13 +215,25 @@ function displayFilters(inputs) {
   return `
   <filter-only-unread>: ${inputs.filterOnlyUnread}
   <filter-only-participating>: ${inputs.filterOnlyParticipating}
-  <filter-include-reasons>: ${inputs.filterIncludeReasons.length ? inputs.filterIncludeReasons.join(", ") : "[]"}
-  <filter-exclude-reasons>: ${inputs.filterExcludeReasons.length ? inputs.filterExcludeReasons.join(", ") : "[]"}
+  <filter-include-reasons>: ${
+    inputs.filterIncludeReasons.length
+      ? inputs.filterIncludeReasons.join(", ")
+      : "[]"
+  }
+  <filter-exclude-reasons>: ${
+    inputs.filterExcludeReasons.length
+      ? inputs.filterExcludeReasons.join(", ")
+      : "[]"
+  }
   <filter-include-repositories>: ${
-    inputs.filterIncludeRepositories.length ? inputs.filterIncludeRepositories.join(", ") : "[]"
+    inputs.filterIncludeRepositories.length
+      ? inputs.filterIncludeRepositories.join(", ")
+      : "[]"
   }
   <filter-exclude-repositories>: ${
-    inputs.filterExcludeRepositories.length ? inputs.filterExcludeRepositories.join(", ") : "[]"
+    inputs.filterExcludeRepositories.length
+      ? inputs.filterExcludeRepositories.join(", ")
+      : "[]"
   }
   `;
 }
