@@ -2,6 +2,7 @@ import * as CoreLibrary from "@actions/core";
 import CronParser from "cron-parser";
 import { Octokit } from "octokit";
 import { throttling } from "@octokit/plugin-throttling";
+import { Endpoints } from "@octokit/types";
 import { WebClient } from "@slack/web-api";
 
 import getInputs from "./lib/get-inputs";
@@ -19,7 +20,7 @@ if (require.main === module) {
   };
   const getSlack = (inputs): WebClient => {
     return new WebClient(inputs.slackToken);
-  }
+  };
   run(getCore, getOctokit, getSlack);
 }
 
@@ -97,9 +98,11 @@ async function run(
       return core.info(
         `No new notifications fetched since last run with given filters:\n<filter-only-unread>: ${inputs.filterOnlyUnread}\n<filter-only-participating>: ${inputs.filterOnlyParticipating}`
       );
-    } 
+    }
     let notifications = notificationsFetch;
-    core.info(`${notifications.length} notifications fetched before filtering.`);
+    core.info(
+      `${notifications.length} notifications fetched before filtering.`
+    );
 
     // Filter notifications to include/exclude user defined "reason"s
     if (inputs.filterIncludeReasons.length) {
@@ -135,16 +138,38 @@ async function run(
 
     if (!notifications.length) {
       return core.info(
-        `No new notifications since last run after running through all filters: ${displayFilters(inputs)}`
+        `No new notifications since last run after running through all filters: ${displayFilters(
+          inputs
+        )}`
       );
     }
 
-    for (const notification of notifications) {
-      console.log(notification)
-      console.log(notification.subject.url);
-      const item = await octokit.request(notification.subject.url);
-      console.log(item)
-    }
+    notifications = await Promise.all(notifications.map(
+      async (
+        notification: Endpoints["GET /notifications"]["response"]["data"][0]
+      ) => {
+        let notification_html_url;
+        try {
+          const notificationSubject = await octokit.request(
+            notification.subject.url
+          );
+          notification_html_url = notificationSubject?.data?.html_url;
+        } catch (error) {
+          core.warning(
+            `Unable to fetch URL fo notification\mid:${
+              notification.id
+            }\nsubject:${JSON.stringify(notification.subject, null, 2)}`
+          );
+        }
+        console.log("Item:");
+        console.log(notification.subject);
+        console.log(notification_html_url);
+        return {
+          ...notification,
+          notification_html_url,
+        };
+      }
+    ));
 
     // Default return is DESC, we want ASC to show oldest first
     if (inputs.sortOldestFirst) {
@@ -163,7 +188,7 @@ async function run(
       for (const notification of notifications) {
         await octokit.rest.activity.markThreadAsRead({
           thread_id: notification.id,
-        })
+        });
       }
     }
 
@@ -180,9 +205,13 @@ function displayFilters(inputs) {
   <filter-only-participating>: ${inputs.filterOnlyParticipating}
   <filter-include-reasons>: ${inputs.filterIncludeReasons?.join(", ") || "[]"}
   <filter-exclude-reasons>: ${inputs.filterExcludeReasons?.join(", ") || "[]"}
-  <filter-include-repositories>: ${inputs.filterIncludeRepositories?.join(", ") || "[]"}
-  <filter-exclude-repositories>: ${inputs.filterExcludeRepositories?.join(", ") || "[]"}
-  `
+  <filter-include-repositories>: ${
+    inputs.filterIncludeRepositories?.join(", ") || "[]"
+  }
+  <filter-exclude-repositories>: ${
+    inputs.filterExcludeRepositories?.join(", ") || "[]"
+  }
+  `;
 }
 
 // export `run` function for testing

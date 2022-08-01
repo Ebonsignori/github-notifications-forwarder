@@ -46,20 +46,20 @@ function setMockEnv(envMap: { [key: string]: any }) {
 }
 
 function mockGetCore() {
-  // const core = {
-    // info: sinon.stub().callsFake((args) => console.log(args)),
-    // error: sinon.stub().callsFake((args) => console.log(args)),
-    // getInput: CoreLibrary.getInput,
-    // getBooleanInput: CoreLibrary.getBooleanInput,
-    // setFailed: sinon.stub().callsFake((args) => console.log(args)),
-  // };
   const core = {
-    info: sinon.stub().callsFake((args) => {}),
-    error: sinon.stub().callsFake((args) => {}),
+    info: sinon.stub().callsFake((args) => console.log(args)),
+    error: sinon.stub().callsFake((args) => console.log(args)),
     getInput: CoreLibrary.getInput,
     getBooleanInput: CoreLibrary.getBooleanInput,
-    setFailed: sinon.stub().callsFake((args) => {}),
+    setFailed: sinon.stub().callsFake((args) => console.log(args)),
   };
+  // const core = {
+    // info: sinon.stub().callsFake((args) => {}),
+    // error: sinon.stub().callsFake((args) => {}),
+    // getInput: CoreLibrary.getInput,
+    // getBooleanInput: CoreLibrary.getBooleanInput,
+    // setFailed: sinon.stub().callsFake((args) => {}),
+  // };
   return () => core;
 }
 
@@ -67,7 +67,7 @@ function mockGetOctokit(
   notifications?: Endpoints["GET /notifications"]["response"]["data"]
 ) {
   const octokit = {
-    request: sinon.stub().resolves((arg) => arg),
+    request: sinon.stub().resolves((arg) => ({ data: { html_url: `<${arg} html_url>` } })),
     rest: {
       activity: {
         listNotificationsForAuthenticatedUser: sinon

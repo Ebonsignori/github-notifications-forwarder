@@ -144,12 +144,21 @@ function run(getCore, getOctokit, getSlack) {
             if (!notifications.length) {
                 return core.info(`No new notifications since last run after running through all filters: ${displayFilters(inputs)}`);
             }
-            for (const notification of notifications) {
-                console.log(notification);
-                console.log(notification.subject.url);
-                const item = yield octokit.request(notification.subject.url);
-                console.log(item);
-            }
+            notifications = yield Promise.all(notifications.map((notification) => __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                let notification_html_url;
+                try {
+                    const notificationSubject = yield octokit.request(notification.subject.url);
+                    notification_html_url = (_a = notificationSubject === null || notificationSubject === void 0 ? void 0 : notificationSubject.data) === null || _a === void 0 ? void 0 : _a.html_url;
+                }
+                catch (error) {
+                    core.warning(`Unable to fetch URL fo notification\mid:${notification.id}\nsubject:${JSON.stringify(notification.subject, null, 2)}`);
+                }
+                console.log("Item:");
+                console.log(notification.subject);
+                console.log(notification_html_url);
+                return Object.assign(Object.assign({}, notification), { notification_html_url });
+            })));
             // Default return is DESC, we want ASC to show oldest first
             if (inputs.sortOldestFirst) {
                 notifications = notifications.reverse();
@@ -359,7 +368,8 @@ function renderNotificationMessage(inputs, notification) {
     const notificationDate = (0, dayjs_1.default)(notification.updated_at)
         .tz(inputs.timezone)
         .format(inputs.dateFormat);
-    return `*${notification.repository.full_name}* _${notificationDate}_\n<${notification.url}|${notification.subject.title}>`;
+    // @ts-expect-error notification_html_url is added and not typed on notification
+    return `*${notification.repository.full_name}* _${notificationDate}_\n<${notification.notification_html_url || notification.repository.html_url}|${notification.subject.title}>`;
 }
 /**
  * Renders notifications for Slack and then sends them

@@ -6,6 +6,8 @@ Requires access to a Slack Bot with proper `write` permissions to the Slack chan
 
 Forwarded notifications can be filtered by their [reason](#reason-filtering), [repository](#repository-filtering), [participation](#filter-only-participating), or [read status](#filter-only-unread).
 
+After a notification is forwarded, it can be [marked as read](#mark-as-read)
+
 ## TOC
 
 - [Example Usage](#example-usage)
@@ -26,6 +28,7 @@ Forwarded notifications can be filtered by their [reason](#reason-filtering), [r
     - [`filter-only-participating`](#filter-only-participating)
     - [`filter-only-unread`](#filter-only-unread)
   - [Optional Configuration](#optional-configuration)
+    - [`mark-as-read`](#mark-as-read)
     - [`sort-oldest-first`](#sort-oldest-first)
     - [`timezone`](#timezone)
     - [`date-format`](#date-format)
@@ -66,7 +69,14 @@ To find the channel's [destination](#destination), you can press on the channel'
 
 ## Inputs
 
-All configuration for the action is set via inputs.
+All configuration for the action is set via inputs, e.g.
+
+```yml
+with:
+  mark-as-read: "true"
+```
+
+Where `mark-as-read` is an _input_.
 
 For true/false inputs, a "true" or "false" string is required.
 
