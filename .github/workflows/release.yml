@@ -26,7 +26,7 @@ jobs:
           npm run package
           LAST_MESSAGE=$(git log -1 HEAD --pretty=format:%s)
           git add --all
-          git diff --quiet && git diff --staged --quiet || git reset --soft HEAD~1 && git add --all && git commit -a -m "`$LAST_MESSAGE`" && git push --force
+          git diff --quiet && git diff --staged --quiet || git reset --soft HEAD~1 && git add --all && git commit -a -m "$LAST_MESSAGE" && git push --force
       # do the release
       - run: npx semantic-release --debug
         env:
