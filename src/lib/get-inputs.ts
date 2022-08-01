@@ -18,13 +18,12 @@ export enum INPUTS {
   filterExcludeRepositories = "filter-exclude-repositories",
   filterOnlyParticipating = "filter-only-participating",
   filterOnlyUnread = "filter-only-unread",
-  rollupNotifications = "rollup-notifications",
+  markAsRead = "mark-as-read",
   sortOldestFirst = "sort-oldest-first",
   timezone = "timezone",
   dateFormat = "date-format",
   paginateAll = "paginate-all",
-  // TODO: When supported in API
-  markAsRead = "mark-as-read",
+  rollupNotifications = "rollup-notifications",
 }
 
 export enum REASONS {
@@ -177,17 +176,16 @@ function getInputs(core: typeof CoreLibrary) {
       INPUT_TYPE.boolean,
       false
     ),
+    markAsRead: getInput(INPUTS.markAsRead, INPUT_TYPE.boolean, false),
     sortOldestFirst: getInput(INPUTS.sortOldestFirst, INPUT_TYPE.boolean, false),
     timezone: getInput(INPUTS.timezone, INPUT_TYPE.string, false),
     dateFormat: getInput(INPUTS.dateFormat, INPUT_TYPE.string, false),
+    paginateAll: getInput(INPUTS.paginateAll, INPUT_TYPE.boolean, false),
     rollupNotifications: getInput(
       INPUTS.rollupNotifications,
       INPUT_TYPE.boolean,
       false
     ),
-    paginateAll: getInput(INPUTS.paginateAll, INPUT_TYPE.boolean, false),
-    // TODO: When supported in API
-    markAsRead: getInput(INPUTS.markAsRead, INPUT_TYPE.boolean, false),
   };
 }
 

@@ -19,12 +19,12 @@ const defaultEnv = {
   "filter-exclude-repositories": "",
   "filter-only-participating": "false",
   "filter-only-unread": "true",
-  "rollup-notifications": "true",
+  "mark-as-read": "false",
   "sort-oldest-first": "true",
   timezone: "UTC",
   "date-format": "M/D h:ma",
+  "rollup-notifications": "true",
   "paginate-all": "false",
-  "mark-as-read": "false",
 };
 
 function setMockEnv(envMap: { [key: string]: any }) {
@@ -72,6 +72,8 @@ function mockGetOctokit(
         listNotificationsForAuthenticatedUser: sinon
           .stub()
           .resolves({ data: notifications }),
+        markThreadAsRead: sinon
+          .stub()
       },
     },
     paginate: sinon.stub().resolves(notifications),
@@ -237,6 +239,33 @@ test("sends slack message of notifications using defaults", async (t) => {
   t.true(slack.chat.postMessage.getCall(0).args[0].text.includes("<A notification>"));
 });
 
+test("marks sent notifications as read when mark-as-read is true", async (t) => {
+  setMockEnv({
+    "mark-as-read": "true",
+    // Don't reverse order to make testing easier
+    "sort-oldest-first": "false",
+  });
+  const getCore = mockGetCore();
+  const getOctokit = mockGetOctokit([
+    createMockNotification("<Notification 1>", "github/github", REASONS.ASSIGN),
+    createMockNotification("<Notification 2>", "github/howie", REASONS.PUSH)
+  ]);
+  const getSlack = mockGetSlack();
+
+  await run(getCore as any, getOctokit as any, getSlack as any);
+
+  const core = getCore();
+  const octokit = getOctokit();
+  const slack = getSlack();
+
+  t.true(core.setFailed.notCalled);
+  t.is(octokit.rest.activity.listNotificationsForAuthenticatedUser.callCount, 1);
+  t.is(slack.chat.postMessage.callCount, 1);
+  t.is(octokit.rest.activity.markThreadAsRead.callCount, 2);
+  t.true(octokit.rest.activity.markThreadAsRead.getCall(0).args[0].thread_id.includes("<Notification 1>"));
+  t.true(octokit.rest.activity.markThreadAsRead.getCall(1).args[0].thread_id.includes("<Notification 2>"));
+});
+
 test("filters on filter-include-reasons", async (t) => {
   setMockEnv({
     "filter-include-reasons": `${REASONS.ASSIGN}, ${REASONS.PUSH}, ${REASONS.AUTHOR}`
@@ -378,5 +407,6 @@ test("filters on filter-exclude-repositories", async (t) => {
   t.true(messageBody.includes("<Notification 5>"));
 });
 
+// TODO: Test mark as read
 // TODO: Test rollup-notifications
-// TODO: test timezone
+// TODO: test timezone and date-format

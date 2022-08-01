@@ -56,7 +56,7 @@ jobs:
 
 ## Finding The Channel ID
 
-In order for a Slack bot to DM you, it needs privledges to.
+In order for a Slack bot to DM you, it needs privileges to.
 
 In order for your bot to post to a channel, you should invite it with `/invite @botname`
 
@@ -96,7 +96,7 @@ The ID of a slack channel or DM that you wish your notifications to go to. See [
 
 ### Reason Filtering
 
-For `reason` filters, refer to [notification reason types](https://docs.github.com/en/account-and-profile/managing-subscriptions-and-notifications-on-github/setting-up-notifications/configuring-notifications#filtering-email-notifications) for a more detailed explination of each `reason`.
+For `reason` filters, refer to [notification reason types](https://docs.github.com/en/account-and-profile/managing-subscriptions-and-notifications-on-github/setting-up-notifications/configuring-notifications#filtering-email-notifications) for a more detailed explanation of each `reason`.
 
 A list of accepted reasons can be found [here](https://github.com/Ebonsignori/github-notifications-slack-forwarder/blob/main/action.yml#L19)
 
@@ -144,6 +144,12 @@ Defaults to `"true"`
 
 ### Optional Configuration
 
+#### `mark-as-read`
+
+Set to `"true"` to mark forwarded notifications as "read"
+
+Defaults to `"false"`
+
 #### `sort-oldest-first`
 
 Sort Slack message(s) by oldest notifications first.
@@ -166,7 +172,7 @@ Defaults to `"M/DD h:mm A"`
 
 By default notifications are sent as a single Slack message.
 
-Set to "false" to send a new Slack messages for each notification (may run into rate limiting problems)
+Set to "false" to send a new Slack messages for each notification (may run into rate limiting problems depending on bot limits)
 
 Defaults to `"true"`
 
@@ -174,4 +180,4 @@ Defaults to `"true"`
 
 By default, the action checks the last 100 notifications since the last `action-schedule` was fired. Set to "true" to check all notifications at the cost of a bigger fetch.
 
-Useful if you recieve a lot of notifications and not all are being forwarded to you.
+Useful if you receive a lot of notifications and not all are being forwarded to you, for instance if you have an `action-schedule` with long gaps between runs.

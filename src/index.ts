@@ -97,9 +97,9 @@ async function run(
       return core.info(
         `No new notifications fetched since last run with given filters:\n<filter-only-unread>: ${inputs.filterOnlyUnread}\n<filter-only-participating>: ${inputs.filterOnlyParticipating}`
       );
-    }
-
+    } 
     let notifications = notificationsFetch;
+    core.info(`${notifications.length} notifications fetched before filtering.`);
 
     // Filter notifications to include/exclude user defined "reason"s
     if (inputs.filterIncludeReasons.length) {
@@ -139,16 +139,35 @@ async function run(
       );
     }
 
+    for (const notification of notifications) {
+      console.log(notification)
+      console.log(notification.subject.url);
+      const item = await octokit.request(notification.subject.url);
+      console.log(item)
+    }
+
     // Default return is DESC, we want ASC to show oldest first
     if (inputs.sortOldestFirst) {
       notifications = notifications.reverse();
     }
 
     // Send Slack Message
-    core.info("Forwarding notifications to Slack...");
+    core.info(`Forwarding ${notifications.length} notifications to Slack...`);
     await sendToSlack(core, slack, inputs, notifications);
 
-    return core.info("Notification message(s) sent!");
+    core.info("Notification message(s) sent!");
+
+    // Mark notifications as read if configured to
+    if (inputs.markAsRead) {
+      core.info("Marking ${notifications.length} as read...");
+      for (const notification of notifications) {
+        await octokit.rest.activity.markThreadAsRead({
+          thread_id: notification.id,
+        })
+      }
+    }
+
+    core.info("Action complete!");
   } catch (error: any) {
     core.error(error);
     core.setFailed(error?.message);
