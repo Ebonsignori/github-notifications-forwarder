@@ -123,7 +123,7 @@ function run(getCore, getOctokit, getSlack) {
                 }
             }
             if (!notificationsFetch.length) {
-                return core.info(`No new notifications fetched since last run with given filters:\n<filter-only-unread>: ${inputs.filterOnlyUnread}\n<filter-only-participating>: ${inputs.filterOnlyParticipating}\n<`);
+                return core.info(`No new notifications fetched since last run with given filters:\n<filter-only-unread>: ${inputs.filterOnlyUnread}\n<filter-only-participating>: ${inputs.filterOnlyParticipating}`);
             }
             let notifications = notificationsFetch;
             // Filter notifications to include/exclude user defined "reason"s
