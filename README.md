@@ -5,7 +5,7 @@ An action intended to be run from a scheduled GitHub action that checks all noti
 Requires:
 
 1. Access to a [Slack Bot](https://api.slack.com/bot-users) with proper `write` [permissions](https://api.slack.com/scopes) to the [destination](#destination) Slack channel or DM.
-2. A user-generated legacy [personal access token](https://github.com/settings/tokens) with the `notifications` scope enabled.
+2. A user-generated legacy [personal access token](https://github.com/settings/tokens) with the `notifications` scope enabled and any organization's SSO authorized.
 
 Forwarded notifications can be filtered by their [reason](#reason-filtering), [repository](#repository-filtering), [participation](#filter-only-participating), or [read status](#filter-only-unread).
 
@@ -100,6 +100,8 @@ You can use [Crontab.guru](https://crontab.guru/) to find a schedule that works 
 #### `github-token`
 
 A legacy [personal access token](https://github.com/settings/tokens) with the `notifications` scope checked. Store thetoken in your repository's secrets and access it in the action as an input, e.g. `${{ secrets.GITHUB_TOKEN }}`.
+
+If you receive notifications for a private organization, you need to authorize that organization's SSO from the tokens page. Select `Configure SSO` and authorize the desired organization(s).
 
 #### `slack-token`
 
