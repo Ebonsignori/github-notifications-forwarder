@@ -412,6 +412,5 @@ test("filters on filter-exclude-repositories", async (t) => {
   t.true(messageBody.includes("<Notification 5>"));
 });
 
-// TODO: Test mark as read
 // TODO: Test rollup-notifications
 // TODO: test timezone and date-format
