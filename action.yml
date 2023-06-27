@@ -7,12 +7,18 @@ inputs:
   github-token:
     description: "PAT with access to relevant notifications"
     required: true
+  webex-token:
+    description: "Webex bot or user token with access to destination. Include to send notifications to Webex"
+    required: false
+  webex-email:
+    description: "Email address of user to send notifications to. Include to send notifications to Webex"
+    required: false
   slack-token:
-    description: "Slack bot token with access to destination"
-    required: true
-  destination:
-    description: "The id of a Slack channel to post notifications to or the id of a user to direct message notifications to."
-    required: true
+    description: "Slack bot token with access to destination. Include to send notifications to Slack"
+    required: false
+  slack-destination:
+    description: "The id of a Slack channel to post notifications to or the id of a user to direct message notifications to. Include to send notifications to Slack"
+    required: false
   filter-include-reasons:
     description: 'A comma separated string of notification "reason" types to include. Defaults to all reasons'
     required: false

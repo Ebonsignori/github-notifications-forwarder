@@ -4,9 +4,11 @@ import { Octokit } from "octokit";
 import { throttling } from "@octokit/plugin-throttling";
 import { Endpoints } from "@octokit/types";
 import { WebClient } from "@slack/web-api";
+import Webex from "webex"
 
 import getInputs from "./lib/get-inputs";
 import sendToSlack from "./lib/send-to-slack";
+import sendToWebex from "./lib/send-to-webex";
 import determineUrl from "./lib/determine-url";
 
 const ExtendedOctokit = Octokit.plugin(throttling);
@@ -19,10 +21,23 @@ if (require.main === module) {
   const getOctokit = (inputs): Octokit => {
     return new ExtendedOctokit({ auth: inputs.githubToken });
   };
-  const getSlack = (inputs): WebClient => {
+  const getSlack = (inputs): WebClient | null => {
+    if (!inputs.slackToken) {
+      return null;
+    }
     return new WebClient(inputs.slackToken);
   };
-  run(getCore, getOctokit, getSlack);
+  const getWebex = (inputs): Webex | null => {
+    if (!inputs.webexToken) {
+      return null;
+    }
+    return Webex.init({
+      credentials: {
+        access_token: inputs.webexToken,
+      },
+    });
+  }
+  run(getCore, getOctokit, getSlack, getWebex);
 }
 
 /**
@@ -31,7 +46,8 @@ if (require.main === module) {
 async function run(
   getCore: () => typeof CoreLibrary,
   getOctokit: (inputs) => Octokit,
-  getSlack: (inputs) => WebClient
+  getSlack: (inputs) => WebClient | null,
+  getWebex: (inputs) => Webex | null
 ): Promise<void> {
   const core = getCore();
 
@@ -40,6 +56,7 @@ async function run(
     const inputs = getInputs(core);
     const octokit = getOctokit(inputs);
     const slack = getSlack(inputs);
+    const webex = getWebex(inputs);
     const currentDate = new Date().toISOString();
 
     // Get the last date that the action should have run
@@ -108,7 +125,7 @@ async function run(
     if (inputs.debugLogging) {
       core.info("Every fetched notification: ");
       for (const notification of notifications) {
-        core.info(JSON.stringify(notification, null, 2))
+        core.info(JSON.stringify(notification, null, 2));
       }
     }
 
@@ -157,11 +174,16 @@ async function run(
       notifications.map(
         async (
           notification: Endpoints["GET /notifications"]["response"]["data"][0]
-        ) =>  {
+        ) => {
           return {
             ...notification,
-            notification_html_url: await determineUrl(core, octokit, inputs, notification)
-          }
+            notification_html_url: await determineUrl(
+              core,
+              octokit,
+              inputs,
+              notification
+            ),
+          };
         }
       )
     );
@@ -172,8 +194,16 @@ async function run(
     }
 
     // Send Slack Message
-    core.info(`Forwarding ${notifications.length} notifications to Slack...`);
-    await sendToSlack(core, slack, inputs, notifications);
+    if (inputs.slackDestination) {
+      core.info(`Forwarding ${notifications.length} notifications to Slack...`);
+      await sendToSlack(core, slack as WebClient, inputs, notifications);
+    }
+
+    // Send Webex Message
+    if (inputs.webexEmail) {
+      core.info(`Forwarding ${notifications.length} notifications to Webex...`);
+      await sendToWebex(core, webex as Webex, inputs, notifications);
+    }
 
     core.info("Notification message(s) sent!");
 

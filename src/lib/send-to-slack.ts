@@ -28,7 +28,7 @@ async function sendToSlack(
   slack: WebClient,
   inputs: {
     rollupNotifications: boolean;
-    destination: string;
+    slackDestination: string;
     timezone: string;
     dateFormat: string;
   },
@@ -66,7 +66,7 @@ async function sendToSlack(
     try {
       return slack.chat.postMessage({
         blocks,
-        channel: inputs.destination,
+        channel: inputs.slackDestination,
         text, // Fallback if blocks aren't available
       });
     } catch (error: any) {
@@ -80,7 +80,7 @@ async function sendToSlack(
   // If not rollup, send each notification individually
   for (const notification of notifications) {
     const text = renderNotificationMessage(inputs, notification);
-    // Not promisified for rate limitting, wait 2 seconds between each message
+    // Not promisified for rate limiting, wait 2 seconds between each message
     try {
       await slack.chat.postMessage({
         blocks: [
@@ -92,7 +92,7 @@ async function sendToSlack(
             },
           },
         ],
-        channel: inputs.destination,
+        channel: inputs.slackDestination,
         text,
       });
       await delay(2000);

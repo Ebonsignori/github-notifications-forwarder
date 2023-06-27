@@ -34,7 +34,8 @@
     "@slack/web-api": "^6.7.2",
     "cron-parser": "^4.5.0",
     "dayjs": "^1.11.4",
-    "octokit": "^2.0.4"
+    "octokit": "^2.0.4",
+    "webex": "^2.55.0"
   },
   "devDependencies": {
     "@ava/typescript": "^3.0.1",

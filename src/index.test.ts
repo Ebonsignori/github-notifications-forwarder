@@ -10,8 +10,10 @@ import { INPUTS, REASONS } from "./lib/get-inputs.js";
 const defaultEnv = {
   "action-schedule": "0 */3 * * *",
   "github-token": "<github-token>",
+  "webex-token": "<webex-token>",
+  "webex-email": "<webex-email>",
   "slack-token": "<slack-token>",
-  destination: "<destination>",
+  "slack-destination": "<slack-destination>",
   "filter-include-reasons":
     "assign, author, ci_activity, comment, manual, mention, push, review_requested, security_alert, state_change, subscribed, team_mention, your_activity",
   "filter-exclude-reasons": "",
@@ -47,12 +49,13 @@ function setMockEnv(envMap: { [key: string]: any }) {
 }
 
 function mockGetCore() {
+  // Toggle comment/uncomment with existing core for logging in testing
   // const core = {
-    // info: sinon.stub().callsFake((args) => console.log(args)),
-    // error: sinon.stub().callsFake((args) => console.log(args)),
-    // getInput: CoreLibrary.getInput,
-    // getBooleanInput: CoreLibrary.getBooleanInput,
-    // setFailed: sinon.stub().callsFake((args) => console.log(args)),
+  //   info: sinon.stub().callsFake((args) => console.log(args)),
+  //   error: sinon.stub().callsFake((args) => console.log(args)),
+  //   getInput: CoreLibrary.getInput,
+  //   getBooleanInput: CoreLibrary.getBooleanInput,
+  //   setFailed: sinon.stub().callsFake((args) => console.log(args)),
   // };
   const core = {
     info: sinon.stub().callsFake((args) => {}),
@@ -92,6 +95,15 @@ function mockGetSlack() {
   return () => slack;
 }
 
+function mockGetWebex() {
+  const webex = {
+    messages: {
+      create: sinon.stub(),
+    },
+  };
+  return () => webex;
+}
+
 function createMockNotification(title: string, repository: string, reason: REASONS): Endpoints["GET /notifications"]["response"]["data"][0] {
   const notification = {
     id: `<id for - "${title}">`,
@@ -116,17 +128,83 @@ test("errors when required argument is omitted", async (t) => {
     "github-token": "",
   });
   const getCore = mockGetCore();
-  const octokit = mockGetOctokit();
-  const slack = mockGetSlack();
+  const getOctokit = mockGetOctokit();
+  const getSlack = mockGetSlack();
+  const getWebex = mockGetWebex();
 
-  await run(getCore as any, octokit as any, slack as any);
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
 
   const core = getCore();
 
   t.true(
     core.setFailed.calledWithMatch(
       "Input required and not supplied: github-token"
-    )
+    ),
+    "Input required and not supplied: github-token"
+  );
+});
+
+test("errors when neither Slack or Webex is configured", async (t) => {
+  setMockEnv({
+    "webex-token": "",
+    "slack-token": "",
+  });
+  const getCore = mockGetCore();
+  const getOctokit = mockGetOctokit();
+  const getSlack = mockGetSlack();
+  const getWebex = mockGetWebex();
+
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
+
+  const core = getCore();
+
+  t.true(
+    core.setFailed.calledWithMatch(
+      "You must provide either a <slack-token> or <webex-token>. Please see the README for more information."
+    ),
+    "Input required and not supplied: slack-token"
+  );
+});
+
+test("errors when Slack token is passed without destination", async (t) => {
+  setMockEnv({
+    "slack-destination": ""
+  });
+  const getCore = mockGetCore();
+  const getOctokit = mockGetOctokit();
+  const getSlack = mockGetSlack();
+  const getWebex = mockGetWebex();
+
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
+
+  const core = getCore();
+
+  t.true(
+    core.setFailed.calledWithMatch(
+      "You must provide a <slack-destination> when forwarding notifications to Slack. Please see the README for more information."
+    ),
+    "Input required and not supplied: slack-token"
+  );
+});
+
+test("errors when Webex token is passed without email", async (t) => {
+  setMockEnv({
+    "webex-email": "",
+  });
+  const getCore = mockGetCore();
+  const getOctokit = mockGetOctokit();
+  const getSlack = mockGetSlack();
+  const getWebex = mockGetWebex();
+
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
+
+  const core = getCore();
+
+  t.true(
+    core.setFailed.calledWithMatch(
+      "You must provide a <webex-email> when forwarding notifications to Webex. Please see the README for more information."
+    ),
+    "Input required and not supplied: slack-token"
   );
 });
 
@@ -135,14 +213,15 @@ test("errors on invalid action-schedule", async (t) => {
     "action-schedule": "a b c",
   });
   const getCore = mockGetCore();
-  const octokit = mockGetOctokit();
-  const slack = mockGetSlack();
+  const getOctokit = mockGetOctokit();
+  const getSlack = mockGetSlack();
+  const getWebex = mockGetWebex();
 
-  await run(getCore as any, octokit as any, slack as any);
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
 
   const core = getCore();
 
-  t.true(core.setFailed.calledWithMatch("Invalid <action-schedule>"));
+  t.true(core.setFailed.calledWithMatch("Invalid <action-schedule>"), "Invalid <action-schedule>");
 });
 
 test("errors when invalid filter reason is set", async (t) => {
@@ -150,14 +229,15 @@ test("errors when invalid filter reason is set", async (t) => {
     "filter-include-reasons": "<all the things I want to hear>",
   });
   const getCore = mockGetCore();
-  const octokit = mockGetOctokit();
-  const slack = mockGetSlack();
+  const getOctokit = mockGetOctokit();
+  const getSlack = mockGetSlack();
+  const getWebex = mockGetWebex();
 
-  await run(getCore as any, octokit as any, slack as any);
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
 
   const core = getCore();
 
-  t.true(core.setFailed.calledWithMatch("Invalid reason in filter input."));
+  t.true(core.setFailed.calledWithMatch("Invalid reason in filter input."), "Invalid reason in filter input.");
 });
 
 test("errors when invalid filter repository is set", async (t) => {
@@ -165,28 +245,30 @@ test("errors when invalid filter repository is set", async (t) => {
     "filter-include-repositories": "not-a-full-name",
   });
   const getCore = mockGetCore();
-  const octokit = mockGetOctokit();
-  const slack = mockGetSlack();
+  const getOctokit = mockGetOctokit();
+  const getSlack = mockGetSlack();
+  const getWebex = mockGetWebex();
 
-  await run(getCore as any, octokit as any, slack as any);
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
 
   const core = getCore();
 
-  t.true(core.setFailed.calledWithMatch("Invalid repository in filter input."));
+  t.true(core.setFailed.calledWithMatch("Invalid repository in filter input."), "Invalid repository in filter input.");
 });
 
 test("exits when no new notifications", async (t) => {
   setMockEnv({});
   const getCore = mockGetCore();
-  const octokit = mockGetOctokit([]);
-  const slack = mockGetSlack();
+  const getOctokit = mockGetOctokit([]);
+  const getSlack = mockGetSlack();
+  const getWebex = mockGetWebex();
 
-  await run(getCore as any, octokit as any, slack as any);
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
 
   const core = getCore();
 
   t.true(core.setFailed.notCalled);
-  t.true(core.info.calledWithMatch("No new notifications fetched since last run"));
+  t.true(core.info.calledWithMatch("No new notifications fetched since last run"), "No new notifications fetched since last run");
 });
 
 test("determines the previous interval correctly", async (t) => {
@@ -198,8 +280,9 @@ test("determines the previous interval correctly", async (t) => {
   const getCore = mockGetCore();
   const getOctokit = mockGetOctokit([]);
   const getSlack = mockGetSlack();
+  const getWebex = mockGetWebex();
 
-  await run(getCore as any, getOctokit as any, getSlack as any);
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
 
   const core = getCore();
   const octokit = getOctokit();
@@ -213,7 +296,7 @@ test("determines the previous interval correctly", async (t) => {
   setMockEnv({
     "action-schedule": "0 * * * *",
   });
-  await run(getCore as any, getOctokit as any, getSlack as any);
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
 
   t.true(core.setFailed.notCalled);
   t.is(octokit.rest.activity.listNotificationsForAuthenticatedUser.callCount, 2);
@@ -227,8 +310,9 @@ test("sends slack message of notifications using defaults", async (t) => {
     createMockNotification("<A notification>", "github/github", REASONS.ASSIGN)
   ]);
   const getSlack = mockGetSlack();
+  const getWebex = mockGetWebex();
 
-  await run(getCore as any, getOctokit as any, getSlack as any);
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
 
   const core = getCore();
   const octokit = getOctokit();
@@ -245,6 +329,32 @@ test("sends slack message of notifications using defaults", async (t) => {
   t.true(slack.chat.postMessage.getCall(0).args[0].text.includes(`<<subject url for - "<A notification>"> html_url>`));
 });
 
+test("sends webex message of notifications using defaults", async (t) => {
+  setMockEnv({});
+  const getCore = mockGetCore();
+  const getOctokit = mockGetOctokit([
+    createMockNotification("<A notification>", "github/github", REASONS.ASSIGN)
+  ]);
+  const getSlack = mockGetSlack();
+  const getWebex = mockGetWebex();
+
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
+
+  const core = getCore();
+  const octokit = getOctokit();
+  const webex = getWebex();
+
+  t.true(core.setFailed.notCalled);
+  t.is(octokit.rest.activity.listNotificationsForAuthenticatedUser.callCount, 1);
+  t.false(octokit.rest.activity.listNotificationsForAuthenticatedUser.getCall(0).args[0].all);
+  t.false(octokit.rest.activity.listNotificationsForAuthenticatedUser.getCall(0).args[0].participating);
+  t.is(webex.messages.create.callCount, 1);
+
+  t.true(webex.messages.create.getCall(0).args[0].attachments[0].body[1].facts[0].value.includes("<A notification>"))
+  // Valid `html_url` fetched via octokit.request()
+  t.true(webex.messages.create.getCall(0).args[0].attachments[0].body[1].facts[0].value.includes(`(<<subject url for - "<A notification>"> html_url>)`))
+});
+
 test("marks sent notifications as read when mark-as-read is true", async (t) => {
   setMockEnv({
     "mark-as-read": "true",
@@ -257,8 +367,9 @@ test("marks sent notifications as read when mark-as-read is true", async (t) => 
     createMockNotification("<Notification 2>", "github/howie", REASONS.PUSH)
   ]);
   const getSlack = mockGetSlack();
+  const getWebex = mockGetWebex();
 
-  await run(getCore as any, getOctokit as any, getSlack as any);
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
 
   const core = getCore();
   const octokit = getOctokit();
@@ -289,8 +400,9 @@ test("filters on filter-include-reasons", async (t) => {
     createMockNotification("<Notification 7>", "github/github", REASONS.TEAM_MENTION),
   ]);
   const getSlack = mockGetSlack();
+  const getWebex = mockGetWebex();
 
-  await run(getCore as any, getOctokit as any, getSlack as any);
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
 
   const core = getCore();
   const octokit = getOctokit();
@@ -327,8 +439,9 @@ test("filters on filter-exclude-reasons", async (t) => {
     createMockNotification("<Notification 7>", "github/github", REASONS.TEAM_MENTION),
   ]);
   const getSlack = mockGetSlack();
+  const getWebex = mockGetWebex();
 
-  await run(getCore as any, getOctokit as any, getSlack as any);
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
 
   const core = getCore();
   const octokit = getOctokit();
@@ -362,8 +475,9 @@ test("filters on filter-include-repositories", async (t) => {
     createMockNotification("<Notification 5>", "github/howie", REASONS.PUSH),
   ]);
   const getSlack = mockGetSlack();
+  const getWebex = mockGetWebex();
 
-  await run(getCore as any, getOctokit as any, getSlack as any);
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
 
   const core = getCore();
   const octokit = getOctokit();
@@ -395,8 +509,9 @@ test("filters on filter-exclude-repositories", async (t) => {
     createMockNotification("<Notification 5>", "github/howie", REASONS.PUSH),
   ]);
   const getSlack = mockGetSlack();
+  const getWebex = mockGetWebex();
 
-  await run(getCore as any, getOctokit as any, getSlack as any);
+  await run(getCore as any, getOctokit as any, getSlack as any, getWebex as any);
 
   const core = getCore();
   const octokit = getOctokit();

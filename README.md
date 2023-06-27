@@ -1,13 +1,20 @@
 # GitHub Notifications Slack Forwarder
 
-**Note:** You can accomplish what this action does via [scheduled reminders](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-your-membership-in-organizations/managing-your-scheduled-reminders) natively in GitHub. Use this action if you'd like more flexible filtering
+**Note:** If you only want to forward personal notifications to Slack, you can accomplish what this action does via native [scheduled reminders](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-your-membership-in-organizations/managing-your-scheduled-reminders) in GitHub. Use this action if you'd like to forward personal notifications to Webex or have more flexible filtering for Slack.
 
-An action intended to be run from a scheduled GitHub action that checks all notifications since the last scheduled run and forwards them to a Slack channel or direct message.
+This action is intended to be run from a scheduled GitHub action that checks all notifications since the last scheduled run and forwards them to Webex or Slack.
 
 Requires:
 
-1. Access to a [Slack Bot](https://api.slack.com/bot-users) with proper `write` [permissions](https://api.slack.com/scopes) to the [destination](#destination) Slack channel or DM.
-2. A user-generated legacy [personal access token](https://github.com/settings/tokens) with the `notifications` scope enabled and any organization's SSO authorized.
+- A user-generated legacy [personal access token](https://github.com/settings/tokens) with the `notifications` scope enabled and any organization's SSO authorized.
+
+**For Slack**
+
+- Access to a [Slack Bot](https://api.slack.com/bot-users) with proper `write` [permissions](https://api.slack.com/scopes) to the [slack-destination](#slack-destination) (A Slack channel or DM).
+
+**For Webex**
+
+- Access to a [Webex bot](https://developer.webex.com/docs/bots) or a [personal access token](https://developer.webex.com/docs/getting-your-personal-access-token) for your user.
 
 Forwarded notifications can be filtered by their [reason](#reason-filtering), [repository](#repository-filtering), [participation](#filter-only-participating), or [read status](#filter-only-unread).
 
@@ -15,14 +22,14 @@ After a notification is forwarded, it can be [marked as read](#mark-as-read).
 
 ## TOC
 
-- [Example Usage](#example-usage)
-- [Finding The Channel ID](#finding-the-channel-id)
+- [Usage](#usage)
+- [Finding a Slack Channel ID](#finding-the-channel-id)
 - [Inputs](#inputs)
   - [Required Inputs](#required-inputs)
     - [`action-schedule`](#action-schedule)
     - [`github-token`](#github-token)
     - [`slack-token`](#slack-token)
-    - [`destination`](#destination)
+    - [`slack-destination`](#slack-destination)
   - [Reason Filtering](#reason-filtering)
     - [`filter-include-reasons`](#filter-include-reasons)
     - [`filter-exclude-reasons`](#filter-exclude-reasons)
@@ -40,15 +47,22 @@ After a notification is forwarded, it can be [marked as read](#mark-as-read).
     - [`rollup-notifications`](#rollup-notifications)
     - [`paginate-all`](#paginate-all)
 
-## Example Usage
+## Usage
 
-Below is a scheduled action, e.g. [.github/workflows/debug-action.yml](./.github/workflows/debug-action.yml) that runs every 3 hours (`0 */3 * * *`) to forward the past 3 hours of notifications to Slack channel with channel id = `"abc1234"`
+Below are two scheduled actions that run every 3 hours (`0 */3 * * *`) to forward the past 3 hours of notifications:
+
+<details>
+  <summary>Forward to Slack Example</summary>
+
+### Forwards notifications to a Slack channel with channel id = `"abc1234"`
 
 ```yml
 name: Debug action
 
 on:
   schedule:
+    # Forwards notifications every 3 hours if there are new notifications
+    # If you change this value to a different interval, update action-schedule found below to match it
     - cron: "0 */3 * * *"
 
 jobs:
@@ -58,21 +72,68 @@ jobs:
       - name: Forward Notifications
         uses: "Ebonsignori/github-notifications-slack-forwarder"
         with:
+          # Every 3 hours, must match on.schedule.cron
           action-schedule: "0 */3 * * *"
+          # Set GITHUB_TOKEN in your repo secrets
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Set SLACK_TOKEN in your repo secrets
           slack-token: ${{ secrets.SLACK_TOKEN }}
-          destination: "abc1234"
+          slack-destination: "abc1234"
 ```
 
-## Finding The Channel ID
+</details>
 
-In order for a Slack bot to DM you, it needs privileges to.
+<details>
+  <summary>Forward to Webex Example</summary>
 
-In order for your bot to post to a Slak channel, you need to invite it with `/invite @botname`.
+### Forwards notifications to user@gmail.com in Webex
 
-To find the channel's [destination](#destination), you can press on the channel's name or at the top of your DMs to find the "Channel ID".
+```yml
+name: Debug action
+
+on:
+  schedule:
+    # Forwards notifications every 3 hours if there are new notifications
+    # If you change this value to a different interval, update action-schedule found below to match it
+    - cron: "0 */3 * * *"
+
+jobs:
+  forward-notifications:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Forward Notifications
+        uses: "Ebonsignori/github-notifications-slack-forwarder"
+        with:
+          # Every 3 hours, must match on.schedule.cron
+          action-schedule: "0 */3 * * *"
+          # Set GITHUB_TOKEN in your repo secrets
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Set WEBEX in your repo secrets
+          webex-token: ${{ secrets.WEBEX_TOKEN }}
+          webex-email: "user@gmail.com"
+```
+
+</details>
+
+To forward your own notifications, create a private repo, e.g. `ebonsignori/notifcations` and copy either of the above examples to `.github/workflows/forward-notifications.yml`.
+
+Then set relevant secrets like `GITHUB_TOKEN`, `WEBEX_TOKEN` and/or `SLACK_TOKEN` in your [repositories settings](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) under the `Secrets and variables` tab.
+
+Further customize your action and how it filters notifications using the [inputs](#inputs) found below.
+
+## Finding A Slack Channel ID
+
+<details>
+  <summary>Click for details</summary>
+  In order for a Slack bot to DM you, it needs privileges to.
+
+In order for your bot to post to a Slack channel, you need to invite it with `/invite @botname`.
+
+To find the channel's [slack-destination](#slack-destination), you can press on the channel's name or at the top of your DMs to find the "Channel ID".
 
 ![Finding the channel ID](./docs/finding-channel-id.png)
+
+</details>
 
 ## Inputs
 
@@ -101,15 +162,23 @@ You can use [Crontab.guru](https://crontab.guru/) to find a schedule that works 
 
 #### `github-token`
 
-A legacy [personal access token](https://github.com/settings/tokens) with the `notifications` scope checked. Store thetoken in your repository's secrets and access it in the action as an input, e.g. `${{ secrets.GITHUB_TOKEN }}`.
+A legacy [personal access token](https://github.com/settings/tokens) with the `notifications` scope checked. Store the token in your repository's secrets and access it in the action as an input, e.g. `${{ secrets.GITHUB_TOKEN }}`.
 
 If you receive notifications for a private organization, you need to authorize that organization's SSO from the tokens page. Select `Configure SSO` and authorize the desired organization(s).
 
+#### `webex-token`
+
+A token for a Webex Bot or User that has permissions to send messages to [webex-email](#webex-email). Store token in your repository's secrets and access it in the action as an input, e.g. `${{ secrets.WEBEX_TOKEN}}`.
+
+#### `webex-email`
+
+The email of the Webex user that you want to receive personal Slack notifications in their DMS.
+
 #### `slack-token`
 
-A token for a Slack App that is invited into the [destination](#destination) and has permissions to post there. Store token in your repository's secrets and access it in the action as an input, e.g. `${{ secrets.SLACK_TOKEN }}`.
+A token for a Slack App that is invited into the [slack-destination](#slack-destination) and has permissions to post there. Store token in your repository's secrets and access it in the action as an input, e.g. `${{ secrets.SLACK_TOKEN }}`.
 
-#### `destination`
+#### `slack-destination`
 
 The ID of a slack channel or DM that you wish your notifications to go to. See [Finding The Channel ID](#finding-the-channel-id) for how to find the ID of your preferred destination.
 
