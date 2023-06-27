@@ -16,12 +16,12 @@ function renderNotificationMessage(
   const notificationDate = dayjs(notification.updated_at)
     .tz(inputs.timezone)
     .format(inputs.dateFormat);
-  return `*${notification.repository.full_name}* _${notificationDate}_ [${
+  return `[${
     notification.subject.title
   }](${
     // @ts-expect-error notification_html_url is added and not typed on notification
     notification.notification_html_url || notification.repository.html_url
-  })`;
+  }) *${notification.repository.full_name}* _${notificationDate}_ `;
 }
 
 /**
@@ -44,7 +44,7 @@ async function sendToWebex(
   if (inputs.rollupNotifications) {
     const markdown = `# GitHub Notifications\n\n${notifications.map((notification, index) => {
       return `${index + 1}. ${renderNotificationMessage(inputs, notification)}`;
-    }).join("\n")}_Since ${sinceDate}_`;
+    }).join("\n")}\n\n_Since ${sinceDate}_`;
 
     try {
       return webex.messages.create({
