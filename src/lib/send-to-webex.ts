@@ -36,13 +36,15 @@ async function sendToWebex(
     timezone: string;
     dateFormat: string;
   },
-  notifications: Endpoints["GET /notifications"]["response"]["data"]
+  notifications: Endpoints["GET /notifications"]["response"]["data"],
+  lastRunDate: Date
 ) {
+  const sinceDate = dayjs(lastRunDate).tz(inputs.timezone).format(inputs.dateFormat);
   // On rollup, send all notifications in one message body
   if (inputs.rollupNotifications) {
     const markdown = `# GitHub Notifications\n\n${notifications.map((notification, index) => {
-      return `- ${index + 1}. ${renderNotificationMessage(inputs, notification)}`;
-    }).join("\n")}`;
+      return `${index + 1}. ${renderNotificationMessage(inputs, notification)}`;
+    }).join("\n")}_Since ${sinceDate}_`;
 
     try {
       return webex.messages.create({

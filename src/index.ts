@@ -221,13 +221,13 @@ async function run(
     // Send Slack Message
     if (inputs.slackDestination) {
       core.info(`Forwarding ${notifications.length} notifications to Slack...`);
-      await sendToSlack(core, slack as WebClient, inputs, notifications);
+      await sendToSlack(core, slack as WebClient, inputs, notifications, lastRunDate);
     }
 
     // Send Webex Message
     if (inputs.webexEmail) {
       core.info(`Forwarding ${notifications.length} notifications to Webex...`);
-      await sendToWebex(core, webex as Webex, inputs, notifications);
+      await sendToWebex(core, webex as Webex, inputs, notifications, lastRunDate);
     }
 
     core.info("Notification message(s) sent!");

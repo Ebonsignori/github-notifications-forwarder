@@ -32,7 +32,8 @@ async function sendToSlack(
     timezone: string;
     dateFormat: string;
   },
-  notifications: Endpoints["GET /notifications"]["response"]["data"]
+  notifications: Endpoints["GET /notifications"]["response"]["data"],
+  lastRunDate: Date
 ) {
   // On rollup, send all notifications in one message body
   if (inputs.rollupNotifications) {
