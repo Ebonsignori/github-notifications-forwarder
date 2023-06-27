@@ -3,7 +3,7 @@
 **Note:** You can accomplish what this action does via [scheduled reminders](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-your-membership-in-organizations/managing-your-scheduled-reminders) natively in GitHub. Use this action if you'd like more flexible filtering
 
 An action intended to be run from a scheduled GitHub action that checks all notifications since the last scheduled run and forwards them to a Slack channel or direct message.
-
+test
 Requires:
 
 1. Access to a [Slack Bot](https://api.slack.com/bot-users) with proper `write` [permissions](https://api.slack.com/scopes) to the [destination](#destination) Slack channel or DM.
