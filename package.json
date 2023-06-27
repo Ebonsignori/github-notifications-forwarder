@@ -80,7 +80,7 @@
   },
   "pre-commit": [
     "package",
-    "lint",
+    "lint:fix",
     "test"
   ]
 }

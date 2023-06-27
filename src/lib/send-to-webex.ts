@@ -42,6 +42,7 @@ async function sendToWebex(
   if (inputs.rollupNotifications) {
     const attachments = [
       {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
         type: "AdaptiveCard",
         version: "1.3",
         body: [
@@ -68,7 +69,7 @@ async function sendToWebex(
     try {
       return webex.messages.create({
         toPersonEmail: inputs.webexEmail,
-        attachments,
+        files: JSON.stringify(attachments),
       });
     } catch (error: any) {
       core.error(error);

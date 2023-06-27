@@ -1,0 +1,12 @@
+{
+  "search.exclude": {
+    "**/dist": true,
+    "**/build": true,
+    "**/coverage": true,
+  },
+  "files.exclude": {
+    "**/dist": true,
+    "**/build": true,
+    "**/coverage": true,
+  },
+}
