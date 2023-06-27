@@ -80,7 +80,6 @@ async function sendToSlack(
   // If not rollup, send each notification individually
   for (const notification of notifications) {
     const text = renderNotificationMessage(inputs, notification);
-    // Not promisified for rate limiting, wait 2 seconds between each message
     try {
       await slack.chat.postMessage({
         blocks: [
@@ -95,6 +94,7 @@ async function sendToSlack(
         channel: inputs.slackDestination,
         text,
       });
+      // Rate limiting, wait 2 seconds between each message
       await delay(2000);
     } catch (error: any) {
       core.error(error);

@@ -40,36 +40,15 @@ async function sendToWebex(
 ) {
   // On rollup, send all notifications in one message body
   if (inputs.rollupNotifications) {
-    const attachments = [
-      {
-        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-        type: "AdaptiveCard",
-        version: "1.3",
-        body: [
-          {
-            type: "TextBlock",
-            text: "GitHub Notifications",
-            // TODO: From date to date
-            wrap: true,
-            size: "ExtraLarge",
-            weight: "Bolder",
-          },
-          {
-            type: "FactSet",
-            facts: notifications.map((notification, index) => {
-              return {
-                title: `${index + 1}`,
-                value: renderNotificationMessage(inputs, notification),
-              };
-            }),
-          },
-        ],
-      },
-    ];
+    const markdown = `# GitHub Notifications\n\n${notifications.map((notification, index) => {
+      return `- ${index + 1}. ${renderNotificationMessage(inputs, notification)}`;
+    }).join("\n")}`;
+
     try {
       return webex.messages.create({
         toPersonEmail: inputs.webexEmail,
-        files: JSON.stringify(attachments),
+        markdown,
+        text: markdown,
       });
     } catch (error: any) {
       core.error(error);
@@ -81,14 +60,14 @@ async function sendToWebex(
 
   // If not rollup, send each notification individually
   for (const notification of notifications) {
-    const text = renderNotificationMessage(inputs, notification);
-    // Not promisified for rate limiting, wait 2 seconds between each message
+    const markdown = renderNotificationMessage(inputs, notification);
     try {
       await webex.messages.create({
         toPersonEmail: inputs.webexEmail,
-        markdown: text,
-        text,
+        markdown,
+        text: markdown,
       });
+      // Rate limiting, wait 2 seconds between each message
       await delay(2000);
     } catch (error: any) {
       core.error(error);
