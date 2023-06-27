@@ -17,7 +17,7 @@ function renderNotificationMessage(
     .tz(inputs.timezone)
     .format(inputs.dateFormat);
   // @ts-expect-error notification_html_url is added and not typed on notification
-  return `*${notification.repository.full_name}* _${notificationDate}_\n<${notification.notification_html_url || notification.repository.html_url}|${notification.subject.title}>`;
+  return `*${notification.repository.full_name}* _${notificationDate}_ <${notification.notification_html_url || notification.repository.html_url}|${notification.subject.title}>`;
 }
 
 /**
@@ -35,6 +35,7 @@ async function sendToSlack(
   notifications: Endpoints["GET /notifications"]["response"]["data"],
   lastRunDate: Date
 ) {
+  const sinceDate = dayjs(lastRunDate).tz(inputs.timezone).format(inputs.dateFormat);
   // On rollup, send all notifications in one message body
   if (inputs.rollupNotifications) {
     const blocks = [
@@ -43,6 +44,13 @@ async function sendToSlack(
         text: {
           type: "plain_text",
           text: "GitHub Notifications",
+        },
+      },
+      {
+        type: "section",
+        text: {
+          type: "plain_text",
+          text: `Since ${sinceDate}`,
         },
       },
     ];
@@ -62,7 +70,7 @@ async function sendToSlack(
       });
     }
 
-    const text = `GitHub Notifications\n\n${textBody}`;
+    const text = `GitHub Notifications since ${sinceDate}\n\n${textBody}`;
 
     try {
       return slack.chat.postMessage({
