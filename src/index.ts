@@ -63,10 +63,7 @@ if (require.main === module) {
   }
   run(getCore, getOctokit, getSlack, getWebex).then(() => {
     process.exit(0);
-  }).catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+  })
 }
 
 /**
@@ -249,6 +246,9 @@ async function run(
   } catch (error: any) {
     core.error(error);
     core.setFailed(error?.message);
+    if (process.env.CI) {
+      process.exit(1);
+    }
   }
 }
 
