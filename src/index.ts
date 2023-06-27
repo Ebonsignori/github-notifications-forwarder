@@ -19,7 +19,30 @@ if (require.main === module) {
     return CoreLibrary;
   };
   const getOctokit = (inputs): Octokit => {
-    return new ExtendedOctokit({ auth: inputs.githubToken });
+    return new ExtendedOctokit({ 
+      auth: inputs.githubToken,
+      throttle: {
+        onRateLimit: (retryAfter, options, octokit, retryCount) => {
+          octokit.log.warn(
+            // @ts-expect-error
+            `Request quota exhausted for request ${options.method} ${options.url}`
+          );
+    
+          if (retryCount < 1) {
+            // only retries once
+            octokit.log.info(`Retrying after ${retryAfter} seconds!`);
+            return true;
+          }
+        },
+        onSecondaryRateLimit: (retryAfter, options, octokit) => {
+          // does not retry, only logs a warning
+          octokit.log.warn(
+            // @ts-expect-error
+            `SecondaryRateLimit detected for request ${options.method} ${options.url}`
+          );
+        },
+      }
+     });
   };
   const getSlack = (inputs): WebClient | null => {
     if (!inputs.slackToken) {
@@ -37,7 +60,12 @@ if (require.main === module) {
       },
     });
   }
-  run(getCore, getOctokit, getSlack, getWebex);
+  run(getCore, getOctokit, getSlack, getWebex).then(() => {
+    process.exit(0);
+  }).catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
 }
 
 /**
@@ -64,7 +92,6 @@ async function run(
     try {
       const cronInterval = CronParser.parseExpression(inputs.actionSchedule, {
         currentDate,
-        tz: inputs.timezone,
       });
       // Navigate pointer to 2 past previous intervals to account for current interval
       cronInterval.prev();

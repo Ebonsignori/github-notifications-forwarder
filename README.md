@@ -6,7 +6,7 @@ This action is intended to be run from a scheduled GitHub action that checks all
 
 Requires:
 
-- A user-generated legacy [personal access token](https://github.com/settings/tokens) with the `notifications` scope enabled and any organization's SSO authorized.
+- A user-generated (classic) [personal access token](https://github.com/settings/tokens) with the `notifications` scope enabled and any organization's SSO authorized.
 
 **For Slack**
 
@@ -57,7 +57,7 @@ Below are two scheduled actions that run every 3 hours (`0 */3 * * *`) to forwar
 ### Forwards notifications to a Slack channel with channel id = `"abc1234"`
 
 ```yml
-name: Debug action
+name: Forward Notifications to Slack
 
 on:
   schedule:
@@ -74,11 +74,12 @@ jobs:
         with:
           # Every 3 hours, must match on.schedule.cron
           action-schedule: "0 */3 * * *"
-          # Set GITHUB_TOKEN in your repo secrets
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Set PERSONAL_TOKEN in your repo secrets
+          github-token: ${{ secrets.PERSONAL_TOKEN }}
           # Set SLACK_TOKEN in your repo secrets
           slack-token: ${{ secrets.SLACK_TOKEN }}
           slack-destination: "abc1234"
+          timezone: "PST"
 ```
 
 </details>
@@ -89,7 +90,7 @@ jobs:
 ### Forwards notifications to user@gmail.com in Webex
 
 ```yml
-name: Debug action
+name: Forward Notifications to Webex
 
 on:
   schedule:
@@ -106,18 +107,19 @@ jobs:
         with:
           # Every 3 hours, must match on.schedule.cron
           action-schedule: "0 */3 * * *"
-          # Set GITHUB_TOKEN in your repo secrets
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Set PERSONAL_TOKEN in your repo secrets
+          github-token: ${{ secrets.PERSONAL_TOKEN }}
           # Set WEBEX in your repo secrets
           webex-token: ${{ secrets.WEBEX_TOKEN }}
           webex-email: "user@gmail.com"
+          timezone: "PST"
 ```
 
 </details>
 
 To forward your own notifications, create a private repo, e.g. `ebonsignori/notifcations` and copy either of the above examples to `.github/workflows/forward-notifications.yml`.
 
-Then set relevant secrets like `GITHUB_TOKEN`, `WEBEX_TOKEN` and/or `SLACK_TOKEN` in your [repositories settings](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) under the `Secrets and variables` tab.
+Then set relevant secrets like `PERSONAL_TOKEN`, `WEBEX_TOKEN` and/or `SLACK_TOKEN` in your [repositories settings](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) under the `Secrets and variables` tab.
 
 Further customize your action and how it filters notifications using the [inputs](#inputs) found below.
 
@@ -162,7 +164,7 @@ You can use [Crontab.guru](https://crontab.guru/) to find a schedule that works 
 
 #### `github-token`
 
-A legacy [personal access token](https://github.com/settings/tokens) with the `notifications` scope checked. Store the token in your repository's secrets and access it in the action as an input, e.g. `${{ secrets.GITHUB_TOKEN }}`.
+A (classic) [personal access token](https://github.com/settings/tokens) with the `notifications` scope checked. Store the token in your repository's secrets and access it in the action as an input, e.g. `${{ secrets.PERSONAL_TOKEN }}`.
 
 If you receive notifications for a private organization, you need to authorize that organization's SSO from the tokens page. Select `Configure SSO` and authorize the desired organization(s).
 
@@ -236,7 +238,7 @@ Defaults to `"true"`.
 
 Set to `"true"` to mark forwarded notifications as "read".
 
-Defaults to `"false"`.
+Defaults to `"true"`.
 
 #### `sort-oldest-first`
 
@@ -249,6 +251,8 @@ Defaults to `"true"`.
 Timezone you're located in for displaying dates and times in Slack messages.
 
 **Note** You can set this for display, but the timezone of the action runner should not be changed from its default "UTC".
+
+Defaults to `"UTC"`.
 
 #### `date-format`
 
@@ -269,3 +273,5 @@ Defaults to `"true"`.
 By default, the action checks the last 100 notifications since the last `action-schedule` was fired. Set to "true" to check all notifications at the cost of a bigger fetch.
 
 Useful if you receive a lot of notifications and not all are being forwarded to you, for instance if you have an `action-schedule` with long gaps between runs.
+
+Defaults to `"false"`.

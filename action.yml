@@ -46,7 +46,7 @@ inputs:
   mark-as-read:
     description: 'Set to "true" to mark forwarded notifications as "read"'
     required: false
-    default: "false"
+    default: "true"
   sort-oldest-first:
     required: false
     description: "Sort Slack message(s) by oldest notifications first."
