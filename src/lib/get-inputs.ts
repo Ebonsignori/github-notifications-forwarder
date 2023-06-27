@@ -198,6 +198,10 @@ function getInputs(core: typeof CoreLibrary) {
     ),
   };
 
+  if (process.env.ACTIONS_STEP_DEBUG) {
+    allInputs.debugLogging = true;
+  }
+
   // - - -
   // Extra validation for inputs
   // - - -

@@ -55,7 +55,7 @@ if (require.main === module) {
       return null;
     }
     return Webex.init({
-      level: process.env.ACTIONS_STEP_DEBUG ? "trace" : "info",
+      level: inputs.debugLogging ? "trace" : "info",
       credentials: {
         access_token: inputs.webexToken,
       },
