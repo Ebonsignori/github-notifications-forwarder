@@ -17,7 +17,7 @@ function renderNotificationMessage(
     .tz(inputs.timezone)
     .format(inputs.dateFormat);
   // @ts-expect-error notification_html_url is added and not typed on notification
-  return `*${notification.repository.full_name}* _${notificationDate}_ <${notification.notification_html_url || notification.repository.html_url}|${notification.subject.title}>`;
+  return `*<${notification.actionUrl}|${notification.actionText}>* in <${notification.repository.html_url}|${notification.repository.name}> at _${notificationDate}_`;
 }
 
 /**

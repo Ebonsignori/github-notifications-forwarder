@@ -10,6 +10,7 @@ import getInputs from "./lib/get-inputs";
 import sendToSlack from "./lib/send-to-slack";
 import sendToWebex from "./lib/send-to-webex";
 import determineUrl from "./lib/determine-url";
+import determineAction from "./lib/determine-action";
 
 const ExtendedOctokit = Octokit.plugin(throttling);
 
@@ -200,14 +201,24 @@ async function run(
         async (
           notification: Endpoints["GET /notifications"]["response"]["data"][0]
         ) => {
-          return {
-            ...notification,
-            notification_html_url: await determineUrl(
+          const action = determineAction(notification);
+          let actionText = action;
+          let actionUrl = "";
+          if (Array.isArray(action)) {
+            actionText = action[0]            
+            actionUrl = action[1]
+          } else {
+            actionUrl = await determineUrl(
               core,
               octokit,
               inputs,
               notification
-            ),
+            ) || notification.repository.html_url
+          }
+          return {
+            ...notification,
+            actionText,
+            actionUrl,
           };
         }
       )

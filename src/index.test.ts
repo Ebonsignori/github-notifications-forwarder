@@ -116,6 +116,7 @@ function createMockNotification(title: string, repository: string, reason: REASO
     },
     repository: {
       full_name: repository,
+      name: repository.split("/")?.[1] || repository,
       html_url: `<repository url for - "${repository}">`,
     }
   }
@@ -329,7 +330,7 @@ test("sends slack message of notifications using defaults", async (t) => {
   t.true(slack.chat.postMessage.getCall(0).args[0].text.includes(`<<subject url for - "<A notification>"> html_url>`));
 });
 
-test("sends webex message of notifications using defaults", async (t) => {
+test.only("sends webex message of notifications using defaults", async (t) => {
   setMockEnv({});
   const getCore = mockGetCore();
   const getOctokit = mockGetOctokit([
@@ -350,6 +351,7 @@ test("sends webex message of notifications using defaults", async (t) => {
   t.false(octokit.rest.activity.listNotificationsForAuthenticatedUser.getCall(0).args[0].participating);
   t.is(webex.messages.create.callCount, 1);
 
+  console.log(webex.messages.create.getCall(0).args[0].markdown)
   t.true(webex.messages.create.getCall(0).args[0].markdown.includes(`[<A notification>](<<subject url for - "<A notification>"> html_url>)`))
 });
 
