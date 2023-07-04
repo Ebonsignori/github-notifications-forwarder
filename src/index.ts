@@ -5,7 +5,7 @@ import { throttling } from "@octokit/plugin-throttling";
 import { Endpoints } from "@octokit/types";
 import { WebClient } from "@slack/web-api";
 import Webex from "webex";
-import artifact from "@actions/artifact";
+import { create, create as createArtifact } from "@actions/artifact";
 import fs from "fs";
 
 import getInputs from "./lib/get-inputs";
@@ -168,7 +168,7 @@ async function run(
         "notifications.json",
         JSON.stringify(notifications, null, 2)
       );
-      const artifactClient = artifact.create();
+      const artifactClient = createArtifact();
       await artifactClient.uploadArtifact(
         "notifications",
         ["notifications.json"],
