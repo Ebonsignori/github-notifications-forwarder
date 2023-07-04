@@ -42,6 +42,7 @@ async function sendToWebex(
   notifications: Endpoints["GET /notifications"]["response"]["data"],
   lastRunDate: Date
 ) {
+  core.info(`Sending ${notifications.length} notifications to Webex...`);
   const sinceDate = dayjs(lastRunDate).tz(inputs.timezone).format(inputs.dateFormat);
   // On rollup, send all notifications in one message body
   if (inputs.rollupNotifications) {

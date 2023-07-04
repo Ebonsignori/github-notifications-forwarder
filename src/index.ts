@@ -5,7 +5,7 @@ import { throttling } from "@octokit/plugin-throttling";
 import { Endpoints } from "@octokit/types";
 import { WebClient } from "@slack/web-api";
 import Webex from "webex";
-import { create, create as createArtifact } from "@actions/artifact";
+import { create as createArtifact } from "@actions/artifact";
 import fs from "fs";
 
 import getInputs from "./lib/get-inputs";

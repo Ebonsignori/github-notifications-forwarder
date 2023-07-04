@@ -37,6 +37,7 @@ async function sendToSlack(
   notifications: Endpoints["GET /notifications"]["response"]["data"],
   lastRunDate: Date
 ) {
+  core.info(`Sending ${notifications.length} notifications to Slack...`);
   const sinceDate = dayjs(lastRunDate)
     .tz(inputs.timezone)
     .format(inputs.dateFormat);
