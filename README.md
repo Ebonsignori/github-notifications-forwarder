@@ -31,31 +31,31 @@ After a notification is forwarded, it can be [marked as read](#mark-as-read).
 - [Finding a Slack Channel ID](#finding-the-channel-id)
 - [Inputs](#inputs)
   - [Required Inputs](#required-inputs)
-    - [`action-schedule`](#action-schedule)
-    - [`github-token`](#github-token)
-    - [`webex-token`](#webex-token)
-    - [`webex-email`](#webex-email)
-    - [`slack-token`](#slack-token)
-    - [`slack-destination`](#slack-destination)
+    - `action-schedule`
+    - `github-token`
+    - `webex-token`
+    - `webex-email`
+    - `slack-token`
+    - `slack-destination`
   - [Reason Filtering](#reason-filtering)
-    - [`filter-include-reasons`](#filter-include-reasons)
-    - [`filter-exclude-reasons`](#filter-exclude-reasons)
+    - `filter-include-reasons`
+    - `filter-exclude-reasons`
   - [Repository Filtering](#repository-filtering)
-    - [`filter-include-repositories`](#filter-include-repositories)
-    - [`filter-exclude-repositories`](#filter-exclude-repositories)
+    - `filter-include-repositories`
+    - `filter-exclude-repositories`
   - [Other Filtering](#other-filtering)
-    - [`filter-only-participating`](#filter-only-participating)
-    - [`filter-only-unread`](#filter-only-unread)
+    - `filter-only-participating`
+    - `filter-only-unread`
   - [Optional Configuration](#optional-configuration)
-    - [`mark-as-read`](#mark-as-read)
-    - [`sort-oldest-first`](#sort-oldest-first)
-    - [`timezone`](#timezone)
-    - [`date-format`](#date-format)
-    - [`time-format`](#time-format)
-    - [`rollup-notifications`](#rollup-notifications)
-    - [`since-last-run`](#since-last-run)
-    - [`paginate-all`](#paginate-all)
-    - [`debug-logging`](#debug-logging)
+    - `mark-as-read`
+    - `sort-oldest-first`
+    - `timezone`
+    - `date-format`
+    - `time-format`
+    - `rollup-notifications`
+    - `since-last-run`
+    - `paginate-all`
+    - `debug-logging`
 
 </details>
 
