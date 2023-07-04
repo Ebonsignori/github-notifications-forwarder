@@ -24,6 +24,8 @@ export enum INPUTS {
   sortOldestFirst = "sort-oldest-first",
   timezone = "timezone",
   dateFormat = "date-format",
+  timeFormat = "time-format",
+  sinceLastRun = "since-last-run",
   paginateAll = "paginate-all",
   rollupNotifications = "rollup-notifications",
   debugLogging = "debug-logging",
@@ -185,6 +187,8 @@ function getInputs(core: typeof CoreLibrary) {
     sortOldestFirst: getInput(INPUTS.sortOldestFirst, INPUT_TYPE.boolean, false),
     timezone: getInput(INPUTS.timezone, INPUT_TYPE.string, false),
     dateFormat: getInput(INPUTS.dateFormat, INPUT_TYPE.string, false),
+    timeFormat: getInput(INPUTS.timeFormat, INPUT_TYPE.string, false),
+    sinceLastRun: getInput(INPUTS.sinceLastRun, INPUT_TYPE.boolean, false),
     paginateAll: getInput(INPUTS.paginateAll, INPUT_TYPE.boolean, false),
     rollupNotifications: getInput(
       INPUTS.rollupNotifications,

@@ -1,0 +1,3 @@
+import { executeRun } from ".";
+
+executeRun();

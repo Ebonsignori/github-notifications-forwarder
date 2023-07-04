@@ -1,0 +1,18 @@
+# Cron job schedule, see https://crontab.guru/ for help
+action-schedule: "*/15 * * * *" # Every 15 minutes
+
+# Optional config
+filter-include-reasons: "assign, author, ci_activity, comment, manual, mention, push, review_requested, security_alert, state_change, subscribed, team_mention, your_activity"
+filter-exclude-reasons: ""
+filter-include-repositories: ""
+filter-exclude-repositories: ""
+filter-only-participating: "false"
+filter-only-unread: "true"
+mark-as-read: "true"
+sort-oldest-first: "true"
+timezone: "UTC"
+date-format: "M/D h:mm A"
+time-format: "h:mm A"
+paginate-all: "false"
+rollup-notifications: "true"
+debug-logging: "false"

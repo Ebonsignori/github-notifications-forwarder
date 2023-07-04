@@ -1,16 +1,25 @@
 {
   "name": "github-notifications-slack-forwarder",
   "description": "Forwards filtered GitHub notifications to a Slack direct message or channel from a schedule GitHub action",
-  "main": "src/index.ts",
+  "exports": {
+    "./src/run-local": "./dist/run-local.js",
+    "./src/run-action": "./dist/run-action.js"
+  },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "scripts": {
+    "start": "node dist/local/index.js",
+    "start-ts": "ts-node src/run-local.ts",
     "build": "tsc",
-    "package": "npm run build && ncc build build/index.js --source-map --license licenses.txt --out dist/",
+    "package-local": "ncc build build/run-local.js --source-map --license licenses.txt --out dist/local",
+    "package-action": "ncc build build/run-action.js --source-map --license licenses.txt --out dist/action",
+    "build-and-package": "npm run build && npm run package-local && npm run package-action",
+    "stage-packages": "git add dist",
     "lint": "prettier --check \"*.{ts,json,md,yml}\"",
     "lint:fix": "prettier --write \"*.{ts,json,md,yml}\"",
-    "test": "c8 ava src"
+    "test": "c8 ava src",
+    "manual-test": "ts-node test/manual-test.ts"
   },
   "repository": {
     "type": "git",
@@ -29,11 +38,13 @@
   },
   "homepage": "https://github.com/Ebonsignori/github-notifications-slack-forwarder#readme",
   "dependencies": {
+    "@actions/artifact": "^1.1.1",
     "@actions/core": "^1.10.0",
     "@octokit/plugin-throttling": "^6.1.0",
     "@slack/web-api": "^6.7.2",
     "cron-parser": "^4.5.0",
     "dayjs": "^1.11.8",
+    "js-yaml": "^4.1.0",
     "octokit": "^2.1.0",
     "webex": "^2.55.0"
   },
@@ -79,7 +90,6 @@
     ]
   },
   "pre-commit": [
-    "package",
     "lint:fix",
     "test"
   ]

@@ -1,8 +1,10 @@
 # GitHub Notifications Slack Forwarder
 
-**Note:** If you only want to forward personal notifications to Slack, you can accomplish what this action does via native [scheduled reminders](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-your-membership-in-organizations/managing-your-scheduled-reminders) in GitHub. Use this action if you'd like to forward personal notifications to Webex or have more flexible filtering for Slack.
+**Note:** If you only want to forward personal notifications to Slack, you can accomplish what this tool does via native [scheduled reminders](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-your-membership-in-organizations/managing-your-scheduled-reminders) in GitHub. Use this tool if you'd like to forward personal notifications to Webex or have more flexible filtering for Slack.
 
-This action is intended to be run from a scheduled GitHub action that checks all notifications since the last scheduled run and forwards them to Webex or Slack.
+This tool can be run as a GitHub Action on a cron-like schedule or run locally on a cron. It forwards personal GitHub notifications to supported connector.
+
+Currently there are only Webex and Slack connectors, though you're welcome to open a PR [to add another](./src/connectors).
 
 Requires:
 
@@ -22,12 +24,17 @@ After a notification is forwarded, it can be [marked as read](#mark-as-read).
 
 ## TOC
 
+<details>
+  <summary>Expand for Table of Contents</summary>
+
 - [Usage](#usage)
 - [Finding a Slack Channel ID](#finding-the-channel-id)
 - [Inputs](#inputs)
   - [Required Inputs](#required-inputs)
     - [`action-schedule`](#action-schedule)
     - [`github-token`](#github-token)
+    - [`webex-token`](#webex-token)
+    - [`webex-email`](#webex-email)
     - [`slack-token`](#slack-token)
     - [`slack-destination`](#slack-destination)
   - [Reason Filtering](#reason-filtering)
@@ -44,17 +51,24 @@ After a notification is forwarded, it can be [marked as read](#mark-as-read).
     - [`sort-oldest-first`](#sort-oldest-first)
     - [`timezone`](#timezone)
     - [`date-format`](#date-format)
+    - [`time-format`](#time-format)
     - [`rollup-notifications`](#rollup-notifications)
+    - [`since-last-run`](#since-last-run)
     - [`paginate-all`](#paginate-all)
+    - [`debug-logging`](#debug-logging)
+
+</details>
 
 ## Usage
 
-Below are two scheduled actions that run every 3 hours (`0 */3 * * *`) to forward the past 3 hours of notifications:
+Below are examples of how you can use this tool:
 
 <details>
-  <summary>Forward to Slack Example</summary>
+  <summary>Forward to Slack via GitHub Action</summary>
 
-### Forwards notifications to a Slack channel with channel id = `"abc1234"`
+### Action that forwards notifications to a Slack channel with channel id = `"abc1234"`
+
+Runs every 3 hours (`0 */3 * * *`) to forward the past 3 hours of notifications
 
 ```yml
 name: Forward Notifications to Slack
@@ -85,9 +99,11 @@ jobs:
 </details>
 
 <details>
-  <summary>Forward to Webex Example</summary>
+  <summary>Forward to Webex via GitHub Action</summary>
 
-### Forwards notifications to user@gmail.com in Webex
+### Action that forwards notifications to `user@gmail.com` in Webex
+
+Runs every 3 hours (`0 */3 * * *`) to forward the past 3 hours of notifications
 
 ```yml
 name: Forward Notifications to Webex
@@ -117,7 +133,20 @@ jobs:
 
 </details>
 
-To forward your own notifications, create a private repo, e.g. `ebonsignori/notifcations` and copy either of the above examples to `.github/workflows/forward-notifications.yml`.
+<details>
+  <summary>Use local CRON to forward notifications</summary>
+
+1. Clone this repo
+1. Copy `config-private.example.yml` to `config-private.yml` and fill in the necessary secrets for your configuration
+1. Further configure this tools configuration in [config.yml](config.yml)
+1. Make sure you have NodeJS v18+ installed locally
+1. Setup a cron job on your local system with a path to the NodeJS executable, `node <your-cloned-directory-location>/dist/local/index.js`
+
+</details>
+
+### Using a GitHub Action
+
+To forward your own notifications via a GitHub action, create a private repo, e.g. `ebonsignori/notifcations` and copy either of the above examples to `.github/workflows/forward-notifications.yml`.
 
 Then set relevant secrets like `PERSONAL_TOKEN`, `WEBEX_TOKEN` and/or `SLACK_TOKEN` in your [repositories settings](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) under the `Secrets and variables` tab.
 
@@ -139,6 +168,8 @@ To find the channel's [slack-destination](#slack-destination), you can press on 
 
 ## Inputs
 
+### Actions
+
 All configuration for the action is set via inputs, e.g.
 
 ```yml
@@ -148,11 +179,19 @@ with:
 
 Where `mark-as-read` is an _input_.
 
+### Local / CRON
+
+Configuration is set in [config.yml](config.yml) and [config-private.yml](config-private.yml) (copied from [config-private.example.yml](config-private.example.yml))
+
+### Format
+
 For true/false inputs, a `"true"` or `"false"` string is required.
 
 For lists, a comma-separated string is required, e.g. `"apples, bananas, pears"`.
 
 ### Required Inputs
+
+Only [github-token](#github-token) and [action-schedule](#action-schedule) are required for every run, the others are required if you want to forward to that respective connector (e.g. Slack).
 
 #### `action-schedule`
 
@@ -260,6 +299,12 @@ Customize dates in Slack messages using [dayjs Date format](https://day.js.org/d
 
 Defaults to `"M/DD h:mm A"`.
 
+#### `time-format`
+
+Customize times in Slack messages using [dayjs Date format](https://day.js.org/docs/en/display/format).
+
+Defaults to `"h:mm A"`.
+
 #### `rollup-notifications`
 
 By default notifications are sent as a single Slack message.
@@ -268,10 +313,24 @@ Set to "false" to send a new Slack messages for each notification (may run into 
 
 Defaults to `"true"`.
 
+#### `since-last-run`
+
+Checks the last 100 notifications since the last [action-schedule](#action-schedule) was fired. Set to `"false"` to check the last 100 notifications regardless of the last [action-schedule](#action-schedule).
+
+You disabled, recommended to have [filter-only-unread](#filter-only-unread) set to `"true"`
+
+Defaults to `"true"`.
+
 #### `paginate-all`
 
-By default, the action checks the last 100 notifications since the last `action-schedule` was fired. Set to "true" to check all notifications at the cost of a bigger fetch.
+With [since-last-run](#since-last-run) enabled, the action checks the last 100 notifications since the last [action-schedule](#action-schedule) was fired. Set to `"true"` to check **all** existing notifications at the cost of a bigger fetch.
 
-Useful if you receive a lot of notifications and not all are being forwarded to you, for instance if you have an `action-schedule` with long gaps between runs.
+Useful if you receive a lot of notifications and not all are being forwarded to you, for instance if you have an `action-schedule` with long gaps between runs, or if you'd like to run once with [mark-as-read](#mark-as-read) set to `"true"` to mark every backlogged notification as `"true"`.
+
+[]() it will take a long time to run and might hit the GitHub API rate limit. Use with caution.
 
 Defaults to `"false"`.
+
+#### `debug-logging`
+
+Set to `true` to enable debug logging and an [artifact upload](https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts) of any notifications.

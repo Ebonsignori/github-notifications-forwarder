@@ -1,0 +1,12 @@
+# Private Config
+github-token: ""
+
+# Enable either slack or webex by setting the token and respective destination
+
+# Private Slack config
+slack-token: ""
+slack-destination: ""
+
+# Private Webex config
+webex-token: ""
+webex-email: ""
