@@ -193,6 +193,9 @@ For lists, a comma-separated string is required, e.g. `"apples, bananas, pears"`
 
 Only [github-token](#github-token) and [action-schedule](#action-schedule) are required for every run, the others are required if you want to forward to that respective connector (e.g. Slack).
 
+<details>
+  <summary>Required Inputs</summary>
+
 #### `action-schedule`
 
 The schedule used by the workflow cron that this action is called from.
@@ -223,11 +226,16 @@ A token for a Slack App that is invited into the [slack-destination](#slack-dest
 
 The ID of a slack channel or DM that you wish your notifications to go to. See [Finding The Channel ID](#finding-the-channel-id) for how to find the ID of your preferred destination.
 
+</details>
+
 ### Reason Filtering
 
 For `reason` filters, refer to [About notification reasons](https://docs.github.com/en/rest/activity/notifications#about-notification-reasons) for a more detailed explanation of each `reason`.
 
 A list of accepted reasons can be found [here](https://github.com/Ebonsignori/github-notifications-slack-forwarder/blob/main/action.yml#L19).
+
+<details>
+  <summary>Reason Filtering</summary>
 
 #### `filter-include-reasons`
 
@@ -241,9 +249,14 @@ Omits notifications with the listed `reason`s from forwarding to slack using a c
 
 Defaults to all no `reason`s.
 
+</details>
+
 ### Repository Filtering
 
 Filter which repositories are included/excluded by writing them in a comma-separated string in the form "owner/repo", e.g. `Ebonsignori/github-notifications-slack-forwarder`.
+
+<details>
+  <summary>Repository Filtering</summary>
 
 #### `filter-include-repositories`
 
@@ -257,7 +270,12 @@ Omits forwarding notifications that are in repositories included in the comma-se
 
 Defaults to empty, `""` which filters out no repositories.
 
+</details>
+
 ### Other Filtering
+
+<details>
+  <summary>Other Filtering</summary>
 
 #### `filter-only-participating`
 
@@ -271,7 +289,12 @@ Set to `"false"` to include notifications marked as "read".
 
 Defaults to `"true"`.
 
+</details>
+
 ### Optional Configuration
+
+<details>
+  <summary>Other Filtering</summary>
 
 #### `mark-as-read`
 
@@ -334,3 +357,5 @@ Defaults to `"false"`.
 #### `debug-logging`
 
 Set to `true` to enable debug logging and an [artifact upload](https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts) of any notifications.
+
+</summary>
