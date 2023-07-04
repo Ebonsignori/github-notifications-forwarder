@@ -50,6 +50,7 @@ export default async function determineUrl(
   // If no hard-coded method for fetching URL is defined, try .request to get the `html_url`
   let notificationHtmlURL;
   if (notification.subject.url) {
+    core.debug(`No hard coded Url transform. Fetching URL for notification with id: ${notification.id}`)
     try {
       const notificationSubject = await octokit.request(
         notification.subject.url

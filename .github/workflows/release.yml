@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 2
       - uses: actions/setup-node@v3
         with:
-          node-version: "lts/*"
+          node-version: "18"
           cache: npm
       # install semantic-release plugins
       - run: npm install --no-save semantic-release-plugin-github-breaking-version-tag

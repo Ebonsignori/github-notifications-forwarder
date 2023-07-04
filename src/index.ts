@@ -4,25 +4,78 @@ import { Octokit } from "octokit";
 import { throttling } from "@octokit/plugin-throttling";
 import { Endpoints } from "@octokit/types";
 import { WebClient } from "@slack/web-api";
+import Webex from "webex";
+import artifact from "@actions/artifact";
+import fs from "fs";
 
 import getInputs from "./lib/get-inputs";
-import sendToSlack from "./lib/send-to-slack";
+import sendToSlack from "./connectors/send-to-slack";
+import sendToWebex from "./connectors/send-to-webex";
 import determineUrl from "./lib/determine-url";
+import determineAction from "./lib/determine-action";
 
 const ExtendedOctokit = Octokit.plugin(throttling);
 
-// Call `run()` directly if this file is the entry point
-if (require.main === module) {
-  const getCore = (): typeof CoreLibrary => {
-    return CoreLibrary;
-  };
-  const getOctokit = (inputs): Octokit => {
-    return new ExtendedOctokit({ auth: inputs.githubToken });
-  };
-  const getSlack = (inputs): WebClient => {
+export async function executeRun(
+  getCoreOverride?: any,
+  getOctokitOverride?: any
+) {
+  let getCore = getCoreOverride;
+  if (!getCore) {
+    getCore = (): typeof CoreLibrary => {
+      return CoreLibrary;
+    };
+  }
+
+  let getOctokit = getOctokitOverride;
+  if (!getOctokit) {
+    getOctokit = (inputs): Octokit => {
+      return new ExtendedOctokit({
+        auth: inputs.githubToken,
+        throttle: {
+          onRateLimit: (retryAfter, options, octokit, retryCount) => {
+            octokit.log.warn(
+              // @ts-expect-error
+              `Request quota exhausted for request ${options.method} ${options.url}`
+            );
+
+            if (retryCount < 1) {
+              // only retries once
+              octokit.log.info(`Retrying after ${retryAfter} seconds!`);
+              return true;
+            }
+          },
+          onSecondaryRateLimit: (retryAfter, options, octokit) => {
+            // does not retry, only logs a warning
+            octokit.log.warn(
+              // @ts-expect-error
+              `SecondaryRateLimit detected for request ${options.method} ${options.url}`
+            );
+          },
+        },
+      });
+    };
+  }
+  const getSlack = (inputs): WebClient | null => {
+    if (!inputs.slackToken) {
+      return null;
+    }
     return new WebClient(inputs.slackToken);
   };
-  run(getCore, getOctokit, getSlack);
+  const getWebex = (inputs): Webex | null => {
+    if (!inputs.webexToken) {
+      return null;
+    }
+    return Webex.init({
+      level: inputs.debugLogging ? "trace" : "info",
+      credentials: {
+        access_token: inputs.webexToken,
+      },
+    });
+  };
+  return run(getCore, getOctokit, getSlack, getWebex).then(() => {
+    process.exit(0);
+  });
 }
 
 /**
@@ -31,7 +84,8 @@ if (require.main === module) {
 async function run(
   getCore: () => typeof CoreLibrary,
   getOctokit: (inputs) => Octokit,
-  getSlack: (inputs) => WebClient
+  getSlack: (inputs) => WebClient | null,
+  getWebex: (inputs) => Webex | null
 ): Promise<void> {
   const core = getCore();
 
@@ -40,6 +94,7 @@ async function run(
     const inputs = getInputs(core);
     const octokit = getOctokit(inputs);
     const slack = getSlack(inputs);
+    const webex = getWebex(inputs);
     const currentDate = new Date().toISOString();
 
     // Get the last date that the action should have run
@@ -47,7 +102,6 @@ async function run(
     try {
       const cronInterval = CronParser.parseExpression(inputs.actionSchedule, {
         currentDate,
-        tz: inputs.timezone,
       });
       // Navigate pointer to 2 past previous intervals to account for current interval
       cronInterval.prev();
@@ -79,11 +133,15 @@ async function run(
       }
     } else {
       try {
+        let since = undefined
+        if (inputs.sinceLastRun) {
+          since = lastRunDate.toISOString()
+        }
         notificationsFetch =
           await octokit.rest.activity.listNotificationsForAuthenticatedUser({
             all: !inputs.filterOnlyUnread,
             participating: inputs.filterOnlyParticipating,
-            since: lastRunDate.toISOString(),
+            since,
             per_page: 100,
           });
         notificationsFetch = notificationsFetch.data;
@@ -105,11 +163,21 @@ async function run(
       `${notifications.length} notifications fetched before filtering.`
     );
 
-    if (inputs.debugLogging) {
-      core.info("Every fetched notification: ");
-      for (const notification of notifications) {
-        core.info(JSON.stringify(notification, null, 2))
-      }
+    if (inputs.debugLogging && process.env.CI) {
+      fs.writeFileSync(
+        "notifications.json",
+        JSON.stringify(notifications, null, 2)
+      );
+      const artifactClient = artifact.create();
+      await artifactClient.uploadArtifact(
+        "notifications",
+        ["notifications.json"],
+        ".",
+        {
+          continueOnError: true,
+          retentionDays: 90,
+        }
+      );
     }
 
     // Filter notifications to include/exclude user defined "reason"s
@@ -157,11 +225,23 @@ async function run(
       notifications.map(
         async (
           notification: Endpoints["GET /notifications"]["response"]["data"][0]
-        ) =>  {
+        ) => {
+          const action = determineAction(notification);
+          let actionText = action;
+          let actionUrl = "";
+          if (Array.isArray(action)) {
+            actionText = action[0];
+            actionUrl = action[1];
+          } else {
+            actionUrl =
+              (await determineUrl(core, octokit, inputs, notification)) ||
+              notification.repository.html_url;
+          }
           return {
             ...notification,
-            notification_html_url: await determineUrl(core, octokit, inputs, notification)
-          }
+            actionText,
+            actionUrl,
+          };
         }
       )
     );
@@ -172,8 +252,28 @@ async function run(
     }
 
     // Send Slack Message
-    core.info(`Forwarding ${notifications.length} notifications to Slack...`);
-    await sendToSlack(core, slack, inputs, notifications);
+    if (inputs.slackDestination) {
+      core.info(`Forwarding ${notifications.length} notifications to Slack...`);
+      await sendToSlack(
+        core,
+        slack as WebClient,
+        inputs,
+        notifications,
+        lastRunDate
+      );
+    }
+
+    // Send Webex Message
+    if (inputs.webexEmail) {
+      core.info(`Forwarding ${notifications.length} notifications to Webex...`);
+      await sendToWebex(
+        core,
+        webex as Webex,
+        inputs,
+        notifications,
+        lastRunDate
+      );
+    }
 
     core.info("Notification message(s) sent!");
 
@@ -191,6 +291,9 @@ async function run(
   } catch (error: any) {
     core.error(error);
     core.setFailed(error?.message);
+    if (process.env.CI) {
+      process.exit(1);
+    }
   }
 }
 

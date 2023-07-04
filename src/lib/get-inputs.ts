@@ -11,7 +11,9 @@ export enum INPUTS {
   actionSchedule = "action-schedule",
   githubToken = "github-token",
   slackToken = "slack-token",
-  destination = "destination",
+  slackDestination = "slack-destination",
+  webexToken = "webex-token",
+  webexEmail = "webex-email",
   filterIncludeReasons = "filter-include-reasons",
   filterExcludeReasons = "filter-exclude-reasons",
   filterIncludeRepositories = "filter-include-repositories",
@@ -22,6 +24,8 @@ export enum INPUTS {
   sortOldestFirst = "sort-oldest-first",
   timezone = "timezone",
   dateFormat = "date-format",
+  timeFormat = "time-format",
+  sinceLastRun = "since-last-run",
   paginateAll = "paginate-all",
   rollupNotifications = "rollup-notifications",
   debugLogging = "debug-logging",
@@ -142,11 +146,13 @@ function getInputs(core: typeof CoreLibrary) {
   }
 
   // All inputs
-  return {
+  const allInputs = {
     actionSchedule: getInput(INPUTS.actionSchedule, INPUT_TYPE.string, true),
     githubToken: getInput(INPUTS.githubToken, INPUT_TYPE.string, true),
-    slackToken: getInput(INPUTS.slackToken, INPUT_TYPE.string, true),
-    destination: getInput(INPUTS.destination, INPUT_TYPE.string, true),
+    webexToken: getInput(INPUTS.webexToken, INPUT_TYPE.string, false),
+    webexEmail: getInput(INPUTS.webexEmail, INPUT_TYPE.string, false),
+    slackToken: getInput(INPUTS.slackToken, INPUT_TYPE.string, false),
+    slackDestination: getInput(INPUTS.slackDestination, INPUT_TYPE.string, false),
     filterIncludeReasons: getInput(
       INPUTS.filterIncludeReasons,
       INPUT_TYPE.reasonList,
@@ -181,6 +187,8 @@ function getInputs(core: typeof CoreLibrary) {
     sortOldestFirst: getInput(INPUTS.sortOldestFirst, INPUT_TYPE.boolean, false),
     timezone: getInput(INPUTS.timezone, INPUT_TYPE.string, false),
     dateFormat: getInput(INPUTS.dateFormat, INPUT_TYPE.string, false),
+    timeFormat: getInput(INPUTS.timeFormat, INPUT_TYPE.string, false),
+    sinceLastRun: getInput(INPUTS.sinceLastRun, INPUT_TYPE.boolean, false),
     paginateAll: getInput(INPUTS.paginateAll, INPUT_TYPE.boolean, false),
     rollupNotifications: getInput(
       INPUTS.rollupNotifications,
@@ -193,6 +201,34 @@ function getInputs(core: typeof CoreLibrary) {
       false
     ),
   };
+
+  if (process.env.ACTIONS_STEP_DEBUG) {
+    allInputs.debugLogging = true;
+  }
+
+  // - - -
+  // Extra validation for inputs
+  // - - -
+  // Require either Slack or Webex to be configured
+  if (!allInputs.slackToken && !allInputs.webexToken) {
+    throw new Error(
+      "You must provide either a <slack-token> or <webex-token>. Please see the README for more information."
+    );
+  }
+
+  if (allInputs.slackToken && !allInputs.slackDestination) {
+    throw new Error(
+      "You must provide a <slack-destination> when forwarding notifications to Slack. Please see the README for more information."
+    )
+  }
+
+  if (allInputs.webexToken && !allInputs.webexEmail) {
+    throw new Error(
+      "You must provide a <webex-email> when forwarding notifications to Webex. Please see the README for more information."
+    )
+  }
+
+  return allInputs;
 }
 
 export default getInputs;

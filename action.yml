@@ -1,5 +1,5 @@
-name: "GitHub Notifications Slack Forwarder"
-description: "Forwards filtered GitHub notifications to a Slack direct message or channel."
+name: "GitHub Notifications Forwarder"
+description: "Forwards filtered GitHub notifications to a configured connector"
 inputs:
   action-schedule:
     description: 'The POSIX cron syntax that matches the on: schedule that this action is called in. e.g. "15 * * * *"'
@@ -7,12 +7,18 @@ inputs:
   github-token:
     description: "PAT with access to relevant notifications"
     required: true
+  webex-token:
+    description: "Webex bot or user token with access to destination. Include to send notifications to Webex"
+    required: false
+  webex-email:
+    description: "Email address of user to send notifications to. Include to send notifications to Webex"
+    required: false
   slack-token:
-    description: "Slack bot token with access to destination"
-    required: true
-  destination:
-    description: "The id of a Slack channel to post notifications to or the id of a user to direct message notifications to."
-    required: true
+    description: "Slack bot token with access to destination. Include to send notifications to Slack"
+    required: false
+  slack-destination:
+    description: "The id of a Slack channel to post notifications to or the id of a user to direct message notifications to. Include to send notifications to Slack"
+    required: false
   filter-include-reasons:
     description: 'A comma separated string of notification "reason" types to include. Defaults to all reasons'
     required: false
@@ -40,25 +46,33 @@ inputs:
   mark-as-read:
     description: 'Set to "true" to mark forwarded notifications as "read"'
     required: false
-    default: "false"
+    default: "true"
   sort-oldest-first:
     required: false
-    description: "Sort Slack message(s) by oldest notifications first."
+    description: "Sort message(s) by oldest notifications first."
     default: "true"
   timezone:
     description: "Timezone you're in. (Action runner timezone must be UTC)"
     required: false
     default: "UTC"
   date-format:
-    description: "Customize dates in Slack messages using dayjs Date format, https://day.js.org/docs/en/display/format"
+    description: "Customize dates in messages using dayjs Date format, https://day.js.org/docs/en/display/format"
     required: false
     default: "M/D h:mm A"
+  time-format:
+    description: "Customize times in messages using dayjs Date format, https://day.js.org/docs/en/display/format"
+    required: false
+    default: "h:mm A"
+  since-last-run:
+    description: "Set to false to fetch last 100 notifications instead of since the action ran."
+    required: false
+    default: "true"
   paginate-all:
     description: 'By default, action checks the last 100 notifications since the last action-schedule was run. Set to "true" to check all notifications'
     required: false
     default: "false"
   rollup-notifications:
-    description: 'Set to "false" to send Slack messages for each notification rather than a single rollup of all notifications into one message.'
+    description: 'Set to "false" to send messages for each notification rather than a single rollup of all notifications into one message.'
     required: false
     default: "true"
   debug-logging:
@@ -68,7 +82,7 @@ inputs:
 
 runs:
   using: node16
-  main: dist/index.js
+  main: dist/action/index.js
 
 branding:
   icon: "bell"

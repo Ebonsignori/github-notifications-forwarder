@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2021",
     "module": "CommonJS",
     "moduleResolution": "Node",
     "outDir": "./build",
@@ -9,5 +9,5 @@
     "noImplicitAny": false,
     "esModuleInterop": true
   },
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "test"]
 }
