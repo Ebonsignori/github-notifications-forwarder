@@ -1,4 +1,4 @@
-# GitHub Notifications Slack Forwarder
+# GitHub Notifications Forwarder
 
 **Note:** If you only want to forward personal notifications to Slack, you can accomplish what this tool does via native [scheduled reminders](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-your-membership-in-organizations/managing-your-scheduled-reminders) in GitHub. Use this tool if you'd like to forward personal notifications to Webex or have more flexible filtering for Slack.
 
