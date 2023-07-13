@@ -9,8 +9,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "start": "node dist/local/index.js",
-    "start-ts": "ts-node src/run-local.ts",
+    "start": "ts-node src/run-local.ts",
+    "start-packaged": "node dist/local/index.js",
     "build": "tsc",
     "package-local": "ncc build build/run-local.js --source-map --license licenses.txt --out dist/local",
     "package-action": "ncc build build/run-action.js --source-map --license licenses.txt --out dist/action",

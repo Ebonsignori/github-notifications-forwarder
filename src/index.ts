@@ -113,17 +113,24 @@ async function run(
       );
     }
 
-    // Fetch notifications since last date
+    // Fetch notifications since last date or since epoch if input "since-last-run" is false
+    let since: string;
+    if (inputs.sinceLastRun) {
+      since = lastRunDate.toISOString()
+    } else {
+      since = new Date(0).toISOString()
+    }
     core.info(
-      `Fetching notifications between ${lastRunDate.toISOString()} and now, ${currentDate} UTC...`
+      `Fetching notifications between ${since} and now, ${currentDate} UTC...`
     );
+
     let notificationsFetch;
     if (inputs.paginateAll) {
       try {
         notificationsFetch = await octokit.paginate("GET /notifications", {
           all: !inputs.filterOnlyUnread,
           participating: inputs.filterOnlyParticipating,
-          since: lastRunDate.toISOString(),
+          since
         });
       } catch (error: any) {
         core.error(error);
@@ -133,10 +140,6 @@ async function run(
       }
     } else {
       try {
-        let since = undefined
-        if (inputs.sinceLastRun) {
-          since = lastRunDate.toISOString()
-        }
         notificationsFetch =
           await octokit.rest.activity.listNotificationsForAuthenticatedUser({
             all: !inputs.filterOnlyUnread,
@@ -145,6 +148,7 @@ async function run(
             per_page: 100,
           });
         notificationsFetch = notificationsFetch.data;
+        console.log(notificationsFetch)
       } catch (error: any) {
         core.error(error);
         throw new Error(
@@ -152,7 +156,6 @@ async function run(
         );
       }
     }
-
     if (!notificationsFetch.length) {
       return core.info(
         `No new notifications fetched since last run with given filters:\n<filter-only-unread>: ${inputs.filterOnlyUnread}\n<filter-only-participating>: ${inputs.filterOnlyParticipating}`

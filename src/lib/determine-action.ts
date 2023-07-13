@@ -24,5 +24,13 @@ export default function determineAction(
     return `Review requested on ${clean(notification.subject.title)}`
   }
 
+  if (notification.reason === REASONS.STATE_CHANGE) { 
+    return `State change for ${clean(notification.subject.title)}`
+  }
+
+  if (notification.reason === REASONS.AUTHOR) { 
+    return `Authored ${clean(notification.subject.title)}`
+  }
+
   return notification.subject.title
 }
