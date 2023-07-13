@@ -232,7 +232,7 @@ The ID of a slack channel or DM that you wish your notifications to go to. See [
 
 For `reason` filters, refer to [About notification reasons](https://docs.github.com/en/rest/activity/notifications#about-notification-reasons) for a more detailed explanation of each `reason`.
 
-A list of accepted reasons can be found [here](https://github.com/Ebonsignori/github-notifications-slack-forwarder/blob/main/action.yml#L19).
+A list of accepted reasons can be found [here](https://github.com/Ebonsignori/github-notifications-forwarder/blob/c9e8a06825f56c48133fcb1a7f0353dcdb33fba3/action.yml#L25).
 
 <details>
   <summary>Reason Filtering</summary>
