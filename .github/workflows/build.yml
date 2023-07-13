@@ -33,7 +33,7 @@ jobs:
           git config user.name "Evan Bonsignori"
           git config user.email "evanabonsignori@gmail.com"
           git add .
-          git commit -m "🛠️ Automate: Build and Package changes"
+          git commit -m "🛠️ Automate: Build and Package changes" --no-verify
 
       # Push changes back to the repo
       - name: Push changes
