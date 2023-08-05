@@ -148,7 +148,6 @@ async function run(
             per_page: 100,
           });
         notificationsFetch = notificationsFetch.data;
-        console.log(notificationsFetch)
       } catch (error: any) {
         core.error(error);
         throw new Error(
