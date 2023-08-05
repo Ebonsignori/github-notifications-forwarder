@@ -20,6 +20,8 @@ jobs:
           cache: npm
       # install semantic-release plugins
       - run: npm install --no-save semantic-release-plugin-github-breaking-version-tag
+      # build and package
+      - run: npm run build-and-package
       # configure git to push commit back to release branch with build
       - run: |
           git config user.name "Evan Bonsignori"

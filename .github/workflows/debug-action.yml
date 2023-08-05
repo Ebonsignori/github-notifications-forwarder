@@ -12,10 +12,8 @@ jobs:
         with:
           action-schedule: "0 */3 * * *"
           github-token: ${{ secrets.EBONSIGNORI_TOKEN }}
-          webex-token: ${{ secrets.WEBEX_TOKEN }}
-          webex-email: ${{ secrets.WEBEX_EMAIL }}
-          # slack-token: ${{ secrets.SLACK_BOT }}
-          # destination: "C03RMNNF1B2"
+          slack-token: ${{ secrets.SLACK_BOT }}
+          destination: "C03RMNNF1B2"
 
 
 
